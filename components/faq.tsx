@@ -41,7 +41,7 @@ export function Faq() {
               rel="noopener noreferrer"
               className="font-semibold text-primary underline-offset-4 hover:underline"
             >
-              Chama no WhatsApp
+              Chame no WhatsApp
             </a>
             .
           </p>

@@ -199,17 +199,20 @@ export function Hero() {
           </a>
         </div>
 
+        {/* col-reverse em cada item: o valor aparece acima do rótulo sem
+            inverter a ordem dt/dd, que é o que o leitor de tela percorre. */}
         <dl className="grid grid-cols-4 gap-x-3 gap-y-6 border-t border-white/12 pt-6 sm:gap-x-4 sm:pt-8">
           {STATS.map((s) => (
-            <div data-hero="stat" key={s.label} className="gsap-hidden">
-              <dt className="sr-only">{s.label}</dt>
-              <dd>
-                <span className="block text-[17px] font-semibold leading-none tracking-tight text-white sm:text-[26px]">
-                  {s.value}
-                </span>
-                <span className="mt-1.5 block text-[9px] uppercase leading-tight tracking-[0.1em] text-white/45 sm:text-xs sm:tracking-[0.14em]">
-                  {s.label}
-                </span>
+            <div
+              data-hero="stat"
+              key={s.label}
+              className="gsap-hidden flex flex-col-reverse"
+            >
+              <dt className="mt-1.5 text-[9px] uppercase leading-tight tracking-[0.1em] text-white/45 sm:text-xs sm:tracking-[0.14em]">
+                {s.label}
+              </dt>
+              <dd className="text-[17px] font-semibold leading-none tracking-tight text-white sm:text-[26px]">
+                {s.value}
               </dd>
             </div>
           ))}

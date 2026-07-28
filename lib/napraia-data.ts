@@ -90,9 +90,11 @@ export const LISTA_VIP = {
   titulo: "Quem entra primeiro, corre na frente",
   descricao:
     "As vagas da Corrida na Praia são limitadas. Quem estiver na lista VIP recebe o aviso de abertura antes de todo mundo e garante a chance de comprar primeiro.",
+  // Sem promessa de e-mail: o disparo automático está desligado.
+  // O aviso sai pelo WhatsApp, com o telefone informado no cadastro.
   vantagens: [
     "Acesso antecipado à abertura das vendas",
-    "Aviso por WhatsApp e e-mail antes da venda geral",
+    "Aviso pelo WhatsApp antes da venda geral",
     "Concorre a um ingresso para o show",
   ],
   destaques: [
@@ -113,7 +115,7 @@ export const SOBRE = {
     "A Corrida na Praia será muito mais do que uma prova. Os participantes viverão uma programação completa antes, durante e depois dos 6 km, com acesso exclusivo ao parque até as 17h.",
   ],
   resumo:
-    "Uma corrida de 6 km com largada e chegada dentro do Na Praia Parque, kit completo, medalha, café da manhã, música, experiências de wellness, acompanhante e acesso exclusivo ao day use até as 17h. A corrida termina, mas o Dia Na Praia continua.",
+    "Uma corrida de 6 km com largada e chegada dentro do Na Praia Parque, kit completo, medalha, café da manhã, música, experiências de wellness, cortesia para acompanhante e acesso exclusivo ao day use até as 17h. A corrida termina, mas o Dia Na Praia continua.",
 } as const;
 
 export const INFO_PRINCIPAIS = [
@@ -136,7 +138,7 @@ export const PERCURSO = {
     "Ao longo do percurso, os corredores encontrarão música e ativações que levarão o clima do Na Praia do primeiro ao último quilômetro.",
   ],
   trechos: [
-    { ordem: "01", titulo: "Largada no parque", descricao: "Saída de dentro do Na Praia Parque." },
+    { ordem: "01", titulo: "Largada no parque", descricao: "A prova começa dentro do Na Praia Parque." },
     { ordem: "02", titulo: "SCES Trecho 2", descricao: "Primeiro trecho pelo Setor de Clubes Esportivos Sul." },
     { ordem: "03", titulo: "Estrada Parque das Nações", descricao: "Subida pela Estrada Parque das Nações." },
     { ordem: "04", titulo: "SCES Trecho 3", descricao: "Retorno fechando o circuito." },
@@ -151,10 +153,22 @@ export const DUAS_EXPERIENCIAS = {
   titulo: "Você corre. E o dia continua.",
   paragrafos: [
     "A inscrição garante a participação do atleta na Corrida na Praia e também o acesso ao Dia Na Praia, com programação exclusiva até as 17h.",
-    "Além disso, cada corredor receberá um ingresso de cortesia para levar um acompanhante ao evento.",
+    "Além disso, cada corredor recebe um ingresso de cortesia para levar um acompanhante ao evento.",
+  ],
+  // O limite da cortesia precisa ficar explícito: é o ponto que mais gera
+  // dúvida e reclamação no dia do evento.
+  cortesiaTitulo: "O que a cortesia dá, e o que não dá",
+  cortesiaInclui: [
+    "Entrada do acompanhante no Na Praia Parque",
+    "Acesso ao Dia Na Praia e à programação até as 17h",
+  ],
+  cortesiaNaoInclui: [
+    "Kit oficial da corrida",
+    "Participação na prova",
+    "Medalha e premiação",
   ],
   nota:
-    "A cortesia permite que o acompanhante aproveite o Dia Na Praia enquanto o participante corre. Ela não representa uma segunda inscrição para a prova.",
+    "A cortesia permite que o acompanhante aproveite o Dia Na Praia enquanto o participante corre. Ela não é uma segunda inscrição: para correr, é necessário ter inscrição própria.",
 } as const;
 
 export const INCLUI = [
@@ -167,7 +181,7 @@ export const INCLUI = [
   "Acesso à programação esportiva do Dia Na Praia",
   "Música e entretenimento durante o evento",
   "Day use exclusivo no Na Praia Parque até as 17h",
-  "After dentro do parque após a corrida",
+  "After dentro do parque, depois da corrida",
   "Uma cortesia para acompanhante",
 ] as const;
 
@@ -186,7 +200,7 @@ export const CRONOGRAMA = [
   },
   {
     titulo: "Largada",
-    descricao: "Corredores direcionados para a organização da prova e início do percurso de 6 km.",
+    descricao: "Os corredores são organizados na largada e o percurso de 6 km começa.",
     destaque: true,
   },
   {
@@ -207,7 +221,7 @@ export const CRONOGRAMA = [
 ] as const;
 
 export const CRONOGRAMA_NOTA =
-  "O horário de abertura dos portões e da largada ainda será confirmado pela organização.";
+  "Os horários de abertura dos portões e da largada ainda serão confirmados pela organização.";
 
 /* ─── Premiação e experiências adicionais ────────────────────────────────── */
 
@@ -247,7 +261,7 @@ export const COMUNIDADES = {
   titulo: "Um grande encontro da corrida de Brasília",
   paragrafos: [
     "A Corrida na Praia reunirá diferentes clubes, assessorias e comunidades de corrida de Brasília.",
-    "A proposta é transformar o evento em um grande encontro entre pessoas que compartilham esporte, saúde, movimento e conexão. A Somma Club estará presente como uma das comunidades parceiras da experiência.",
+    "A proposta é transformar o evento em um grande encontro entre pessoas que compartilham esporte, saúde, movimento e conexão. O Somma Club estará presente como uma das comunidades parceiras da experiência.",
   ],
 } as const;
 
@@ -260,11 +274,15 @@ export const FAQ = [
   },
   {
     q: "Até que horas vai o day use?",
-    a: "O acesso ao Dia Na Praia será válido até as 17h.",
+    a: "O acesso ao Dia Na Praia é válido até as 17h.",
   },
   {
     q: "O acompanhante também pode correr?",
-    a: "Não. A cortesia garante o acesso do acompanhante ao evento. Para participar da corrida, é necessário possuir uma inscrição própria.",
+    a: "Não. A cortesia garante apenas o acesso do acompanhante ao evento. Para participar da corrida, é necessário ter inscrição própria.",
+  },
+  {
+    q: "A cortesia dá direito ao kit da corrida?",
+    a: "Não. O kit oficial é exclusivo de quem está inscrito na prova. A cortesia dá ao acompanhante a entrada no Na Praia Parque e o acesso ao Dia Na Praia até as 17h, mas não dá direito ao kit, à medalha nem à premiação.",
   },
   {
     q: "O que está incluído no ingresso?",
@@ -272,7 +290,7 @@ export const FAQ = [
   },
   {
     q: "O parque estará aberto ao público geral?",
-    a: "Nesse dia, o Na Praia estará reservado para os participantes da corrida, acompanhantes e pessoas credenciadas para o evento.",
+    a: "Não. Nesse dia, o Na Praia estará reservado aos participantes da corrida, aos acompanhantes e às pessoas credenciadas para o evento.",
   },
   {
     q: "Haverá premiação?",
@@ -280,11 +298,11 @@ export const FAQ = [
   },
   {
     q: "A Área Recovery está incluída?",
-    a: "Não. A Área Recovery, a personalização da medalha e o lounge open bar são experiências adicionais que poderão ser adquiridas durante a inscrição.",
+    a: "Não. A Área Recovery, a personalização da medalha e o lounge open bar são experiências adicionais e podem ser adquiridas separadamente durante a inscrição.",
   },
   {
     q: "Entrar na lista VIP garante o ingresso?",
-    a: "Não. A lista VIP dá acesso antecipado à pré-venda, mas os ingressos continuarão sujeitos à disponibilidade.",
+    a: "Não. A lista VIP dá acesso antecipado à abertura das vendas, mas os ingressos continuam sujeitos à disponibilidade. As vagas são limitadas.",
   },
 ] as const;
 

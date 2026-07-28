@@ -37,7 +37,7 @@ export function Inscricao() {
                   Vagas limitadas
                 </p>
                 <p className="mt-2 text-[13px] leading-5 text-white/50">
-                  A corrida tem número máximo de participantes
+                  A corrida tem um número máximo de participantes
                 </p>
               </div>
               <div className="flex-1 rounded-panel border border-white/12 bg-white/[0.04] px-5 py-4">

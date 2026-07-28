@@ -73,7 +73,7 @@ function validar(campo: Campo, valor: string): string | undefined {
       return;
     case "telefone": {
       const d = onlyDigits(v);
-      if (d.length !== 10 && d.length !== 11) return "Telefone inválido. Use DDD + número.";
+      if (d.length !== 10 && d.length !== 11) return "Telefone inválido. Informe o DDD e o número.";
       return;
     }
     case "cpf":
@@ -251,8 +251,8 @@ export function ListaVipForm() {
       </button>
 
       <p className="mt-4 text-center text-[12px] leading-5 text-white/35">
-        Ao enviar, você concorda em receber os avisos do evento por e-mail. Seus dados
-        são tratados conforme a LGPD e não são compartilhados com terceiros.
+        Ao enviar, você concorda em receber comunicações sobre o evento. Seus dados são
+        tratados conforme a LGPD e não são compartilhados com terceiros.
       </p>
     </form>
   );
