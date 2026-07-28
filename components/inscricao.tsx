@@ -1,4 +1,5 @@
 import { Reveal } from "@/components/ui/reveal";
+import { AgendaEvento } from "@/components/agenda-evento";
 import { ListaVipForm } from "@/components/lista-vip-form";
 import { PrazoListaVip } from "@/components/prazo-lista-vip";
 import { Sunburst } from "@/components/ui/sunburst";
@@ -97,6 +98,10 @@ export function Inscricao() {
                 Sorteio · {SORTEIO.sorteioDia}
               </p>
             </div>
+
+            {/* Guardar a data não depende da abertura das vendas: quem ainda
+                está decidindo já sai daqui com o domingo bloqueado. */}
+            <AgendaEvento variante="escuro" className="mb-6" />
 
             <p className="text-[12px] leading-5 text-white/35">{LISTA_VIP.aviso}</p>
           </Reveal>

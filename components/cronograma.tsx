@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import { Reveal } from "@/components/ui/reveal";
+import { AgendaEvento } from "@/components/agenda-evento";
 import { CRONOGRAMA, CRONOGRAMA_NOTA, EVENTO } from "@/lib/napraia-data";
 
 /** Linha do tempo do domingo. A trilha vertical se preenche conforme a
@@ -100,6 +101,12 @@ export function Cronograma() {
           <p className="rounded-card border border-black/[0.08] bg-white px-5 py-4 text-[14px] leading-6 text-muted">
             {CRONOGRAMA_NOTA}
           </p>
+        </Reveal>
+
+        {/* Logo depois da linha do tempo: é aqui que a pessoa está pensando
+            em data e horário do domingo. */}
+        <Reveal delay={0.1} className="mt-4">
+          <AgendaEvento variante="claro" />
         </Reveal>
 
         <Reveal delay={0.15} className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">

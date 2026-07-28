@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { gsap, prefersReducedMotion } from "@/lib/gsap";
 import { lerComprovante, type Comprovante } from "@/lib/comprovante";
+import { AgendaEvento } from "@/components/agenda-evento";
 import { EVENTO, SOMMA, SORTEIO } from "@/lib/napraia-data";
 import { firstName } from "@/lib/validation";
 
@@ -177,6 +178,11 @@ export function ObrigadoTicket() {
           </div>
         </div>
       </div>
+
+      {/* Primeira ação depois do comprovante: garantir que a data não se perca.
+          O aviso de abertura das vendas vem pelo WhatsApp, mas o domingo do
+          evento a pessoa já bloqueia agora. */}
+      <AgendaEvento variante="escuro" className="mt-5" />
 
       {/* Sorteio */}
       <div className="mt-5 rounded-panel border border-r2/30 bg-r2/10 p-5 sm:p-6">

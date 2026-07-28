@@ -56,6 +56,54 @@ export const R2 = {
   logo: "/logo-r2.svg",
 } as const;
 
+/* ─── Agenda do evento ───────────────────────────────────────────────────── */
+// A Corrida na Praia já existe como evento na Agenda Somma Club, que é a fonte
+// de verdade de data, horário e local. Não duplicamos esses dados aqui: os
+// botões apontam para o endpoint da agenda, que monta o .ics e os deeplinks a
+// partir do evento publicado. Se a organização mudar o horário lá, muda aqui.
+const AGENDA_ORIGEM = "https://agenda.sommaclub.com.br";
+const AGENDA_EVENTO_SLUG = "corrida-na-praia-com-a-somma-club";
+const AGENDA_ICS = `${AGENDA_ORIGEM}/api/calendar/evento/${AGENDA_EVENTO_SLUG}.ics`;
+
+export const AGENDA = {
+  eyebrow: "SALVE A DATA",
+  titulo: "Coloque a corrida na sua agenda",
+  descricao:
+    "Adicione a Corrida na Praia ao calendário do seu celular e receba lembretes antes da largada.",
+  descricaoCurta: "Receba lembretes antes da largada.",
+  pagina: `${AGENDA_ORIGEM}/agenda/${AGENDA_EVENTO_SLUG}`,
+  // Assinatura da agenda completa do Somma Club, para quem quer todos os eventos.
+  feed: `${AGENDA_ORIGEM}/agenda`,
+  apps: [
+    // `curto` é o rótulo da versão compacta do hero: com o nome completo os
+    // três botões não cabem em uma linha no mobile.
+    {
+      key: "google",
+      label: "Google Agenda",
+      curto: "Google",
+      hint: "Android e web",
+      href: `${AGENDA_ICS}?app=google`,
+      novaAba: true,
+    },
+    {
+      key: "apple",
+      label: "Apple Calendar",
+      curto: "Apple",
+      hint: "iPhone, iPad e Mac",
+      href: AGENDA_ICS,
+      novaAba: false,
+    },
+    {
+      key: "outlook",
+      label: "Outlook",
+      curto: "Outlook",
+      hint: "Microsoft",
+      href: `${AGENDA_ICS}?app=outlook`,
+      novaAba: true,
+    },
+  ],
+} as const;
+
 export const NAV = [
   { label: "O evento", href: "#evento" },
   { label: "Percurso", href: "#percurso" },

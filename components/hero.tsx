@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/gsap";
 import { EVENTO, STATS } from "@/lib/napraia-data";
+import { AgendaEvento } from "@/components/agenda-evento";
 import { Countdown } from "@/components/countdown";
 import { Sunburst } from "@/components/ui/sunburst";
 
@@ -189,7 +190,7 @@ export function Hero() {
           <Countdown />
         </div>
 
-        <div className="mb-9 flex flex-col gap-3 sm:mb-14 sm:flex-row sm:items-center">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
           <a data-hero="cta" href="#inscricao" className="gsap-hidden btn-primary w-full sm:w-auto">
             Entrar na lista VIP
             <span aria-hidden>→</span>
@@ -198,6 +199,13 @@ export function Hero() {
             Ver o cronograma
           </a>
         </div>
+
+        {/* Ação secundária: quem ainda não vai entrar na lista pelo menos leva
+            a data embora. Entra junto com os CTAs na timeline do hero. */}
+        <div data-hero="cta" className="gsap-hidden mb-9 sm:mb-14">
+          <AgendaEvento variante="compacto" />
+        </div>
+
 
         {/* col-reverse em cada item: o valor aparece acima do rótulo sem
             inverter a ordem dt/dd, que é o que o leitor de tela percorre. */}
