@@ -11,7 +11,7 @@ const CONTEMPLA = [
   "Medalha de participação",
   "Café da manhã e smoothies",
   "Aulão de aquecimento com a Smart Fit",
-  `Day use no parque até as ${EVENTO.dayUseAte}`,
+  `Day use no parque até às ${EVENTO.dayUseAte}`,
   "After dentro do parque",
   "Uma cortesia para acompanhante",
 ];

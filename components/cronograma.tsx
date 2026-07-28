@@ -108,7 +108,7 @@ export function Cronograma() {
             <span aria-hidden>→</span>
           </a>
           <p className="text-sm text-muted">
-            O day use segue até as {EVENTO.dayUseAte}.
+            O day use segue até às {EVENTO.dayUseAte}.
           </p>
         </Reveal>
       </div>

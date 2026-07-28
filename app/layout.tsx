@@ -6,7 +6,7 @@ import { EVENTO, SOMMA } from "@/lib/napraia-data";
 
 const TITLE = "Corrida na Praia · Somma Club & R2 · 06.09.2026";
 const DESCRIPTION =
-  "Corrida de 6 km com largada e chegada dentro do Na Praia Parque, em Brasília. Kit oficial, medalha, café da manhã, música e day use até as 17h. Entre na lista VIP e garanta acesso antecipado à pré-venda.";
+  "Corrida de 6 km com largada e chegada dentro do Na Praia Parque, em Brasília. Kit oficial, medalha, café da manhã, música e day use até às 17h. Entre na lista VIP e garanta acesso antecipado à pré-venda.";
 
 export const metadata: Metadata = {
   title: TITLE,

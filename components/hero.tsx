@@ -181,7 +181,7 @@ export function Hero() {
           className="gsap-hidden mb-7 max-w-xl text-[15px] leading-6 text-white/65 sm:mb-9 sm:text-lg sm:leading-8"
         >
           {EVENTO.dataExtenso}. Corrida de {EVENTO.distancia} com largada e chegada
-          dentro do {EVENTO.local.nome}, kit oficial, medalha e day use até as{" "}
+          dentro do {EVENTO.local.nome}, kit oficial, medalha e day use até às{" "}
           {EVENTO.dayUseAte}.
         </p>
 

@@ -94,9 +94,9 @@ export function renderVipEmail({ nome }: { nome: string }): string {
         <tr><td style="padding:0 32px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid rgba(0,0,0,.1);border-radius:16px;">
             ${row("Quando", EVENTO.dataExtenso)}
-            ${row("Onde", `${local.nome} — ${local.endereco}<br>${local.bairro}`)}
+            ${row("Onde", `${local.nome}, ${local.endereco}<br>${local.bairro}`)}
             ${row("Distância", `${EVENTO.distancia}, com largada e chegada dentro do parque`)}
-            ${row("Day use", `Até as ${EVENTO.dayUseAte}`)}
+            ${row("Day use", `Até às ${EVENTO.dayUseAte}`)}
             ${row("Vagas", "Limitadas · você será avisado na abertura", true)}
           </table>
         </td></tr>
@@ -118,7 +118,7 @@ export function renderVipEmail({ nome }: { nome: string }): string {
           <ul style="margin:0;padding-left:20px;color:#525252;font-size:15px;line-height:26px;">
             <li>Corrida de ${EVENTO.distancia} e kit oficial com camiseta, boné e meia</li>
             <li>Medalha, café da manhã e experiências de parceiros</li>
-            <li>Day use no ${local.nome} até as ${EVENTO.dayUseAte} e after no parque</li>
+            <li>Day use no ${local.nome} até às ${EVENTO.dayUseAte} e after no parque</li>
             <li>Uma cortesia para levar um acompanhante</li>
           </ul>
         </td></tr>
@@ -133,15 +133,15 @@ export function renderVipEmail({ nome }: { nome: string }): string {
         <!-- Aviso -->
         <tr><td style="padding:20px 32px 0;">
           <p style="margin:0;color:#a3a3a3;font-size:12px;line-height:20px;">
-            ${LISTA_VIP.aviso} O horário de abertura dos portões e da largada ainda será
-            confirmado pela organização.
+            ${LISTA_VIP.aviso} Os horários de abertura dos portões e da largada ainda
+            serão confirmados pela organização.
           </p>
         </td></tr>
 
         <!-- Rodapé -->
         <tr><td style="padding:28px 32px 32px;border-top:1px solid rgba(0,0,0,.08);margin-top:24px;">
           <p style="margin:0 0 12px;color:#737373;font-size:13px;line-height:22px;">
-            Dúvidas? Responda este e-mail ou chame no
+            Dúvidas? Responda a este e-mail ou chame no
             <a href="${SOMMA.links.whatsapp}" style="color:${ORANGE};text-decoration:none;">WhatsApp</a>.
           </p>
           <p style="margin:0;color:#a3a3a3;font-size:12px;line-height:20px;">
@@ -177,9 +177,9 @@ export function renderVipEmailText({ nome }: { nome: string }): string {
     "As vagas são limitadas e você será avisado por WhatsApp e e-mail assim que as vendas abrirem.",
     "",
     `Quando: ${EVENTO.dataExtenso}`,
-    `Onde: ${local.nome} — ${local.endereco}, ${local.bairro}`,
+    `Onde: ${local.nome}, ${local.endereco}, ${local.bairro}`,
     `Distância: ${EVENTO.distancia}, com largada e chegada dentro do parque`,
-    `Day use: até as ${EVENTO.dayUseAte}`,
+    `Day use: até às ${EVENTO.dayUseAte}`,
     "Vagas: limitadas · você será avisado na abertura",
     "",
     `Você também está concorrendo a um ingresso para ${SORTEIO.atracoes} (${SORTEIO.data}, ${SORTEIO.hora}, ${SORTEIO.local}).`,
@@ -187,15 +187,15 @@ export function renderVipEmailText({ nome }: { nome: string }): string {
     "O ingresso inclui:",
     `- Corrida de ${EVENTO.distancia} e kit oficial com camiseta, boné e meia`,
     "- Medalha, café da manhã e experiências de parceiros",
-    `- Day use no ${local.nome} até as ${EVENTO.dayUseAte} e after no parque`,
+    `- Day use no ${local.nome} até às ${EVENTO.dayUseAte} e after no parque`,
     "- Uma cortesia para levar um acompanhante",
     "",
     `Mapa: ${local.maps}`,
     "",
     LISTA_VIP.aviso,
-    "O horário de abertura dos portões e da largada ainda será confirmado pela organização.",
+    "Os horários de abertura dos portões e da largada ainda serão confirmados pela organização.",
     "",
-    `Dúvidas? Responda este e-mail ou chame no WhatsApp: ${SOMMA.links.whatsapp}`,
+    `Dúvidas? Responda a este e-mail ou chame no WhatsApp: ${SOMMA.links.whatsapp}`,
     `Somma Club · CNPJ ${SOMMA.cnpj}`,
   ].join("\n");
 }

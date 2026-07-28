@@ -119,7 +119,7 @@ export function ObrigadoTicket() {
 
           <dl data-linha-ticket className="mb-7 grid grid-cols-2 gap-x-4 gap-y-5">
             <Campo rotulo="Distância" valor={EVENTO.distancia} />
-            <Campo rotulo="Day use" valor={`Até as ${EVENTO.dayUseAte}`} />
+            <Campo rotulo="Day use" valor={`Até às ${EVENTO.dayUseAte}`} />
             <Campo rotulo="Local" valor={EVENTO.local.nome} />
             <Campo rotulo="Largada" valor="A confirmar" />
           </dl>
@@ -225,7 +225,7 @@ export function ObrigadoTicket() {
   );
 }
 
-const TEXTO_CONVITE = `Vou correr a ${EVENTO.nome}, ${EVENTO.dataCurta}, no ${EVENTO.local.nome}. São ${EVENTO.distancia} e o day use vai até as ${EVENTO.dayUseAte}. As vagas são limitadas, entra na lista VIP comigo:`;
+const TEXTO_CONVITE = `Vou correr a ${EVENTO.nome}, ${EVENTO.dataCurta}, no ${EVENTO.local.nome}. São ${EVENTO.distancia} e o day use vai até às ${EVENTO.dayUseAte}. As vagas são limitadas. Entra na lista VIP comigo:`;
 
 /** Compartilhamento nativo quando o aparelho oferece (padrão no iOS e
  *  Android) e WhatsApp como alternativa no desktop. */

@@ -63,7 +63,7 @@ export function Mapa() {
         new Marker({
           map,
           position: { lat, lng },
-          title: `${EVENTO.local.nome} — largada ${EVENTO.horaLargada}`,
+          title: `${EVENTO.local.nome} · largada ${EVENTO.horaLargada}`,
           icon: {
             path: "M12 0C5.37 0 0 5.37 0 12c0 9 12 24 12 24s12-15 12-24c0-6.63-5.37-12-12-12z",
             fillColor: "#FF2C03",

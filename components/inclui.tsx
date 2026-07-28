@@ -26,7 +26,7 @@ export function Inclui() {
                 Para você
               </p>
               <p className="text-[17px] font-semibold leading-snug text-white">
-                Corrida de 6 km e Dia Na Praia até as 17h
+                Corrida de 6 km e Dia Na Praia até às 17h
               </p>
             </div>
             <div className="rounded-panel border border-white/12 bg-white/[0.05] p-6">

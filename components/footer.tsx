@@ -26,7 +26,7 @@ export function Footer() {
 
             <p className="mb-6 max-w-sm text-[14px] leading-6 text-white/45">
               {EVENTO.nome}: {EVENTO.distancia} com largada e chegada dentro do{" "}
-              {EVENTO.local.nome}. {EVENTO.dataExtenso}, com day use até as{" "}
+              {EVENTO.local.nome}. {EVENTO.dataExtenso}, com day use até às{" "}
               {EVENTO.dayUseAte}.
             </p>
 

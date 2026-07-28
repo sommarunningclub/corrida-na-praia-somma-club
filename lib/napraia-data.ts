@@ -112,10 +112,10 @@ export const SOBRE = {
   titulo: "Corrida, música e day use no mesmo domingo.",
   paragrafos: [
     "No dia 6 de setembro de 2026, o Na Praia Parque recebe uma experiência que une corrida, saúde, música, bem-estar, comunidade e diversão.",
-    "A Corrida na Praia será muito mais do que uma prova. Os participantes viverão uma programação completa antes, durante e depois dos 6 km, com acesso exclusivo ao parque até as 17h.",
+    "A Corrida na Praia será muito mais do que uma prova. Os participantes viverão uma programação completa antes, durante e depois dos 6 km, com acesso exclusivo ao parque até às 17h.",
   ],
   resumo:
-    "Uma corrida de 6 km com largada e chegada dentro do Na Praia Parque, kit completo, medalha, café da manhã, música, experiências de wellness, cortesia para acompanhante e acesso exclusivo ao day use até as 17h. A corrida termina, mas o Dia Na Praia continua.",
+    "Uma corrida de 6 km com largada e chegada dentro do Na Praia Parque, kit completo, medalha, café da manhã, música, experiências de wellness, cortesia para acompanhante e acesso exclusivo ao day use até às 17h. A corrida termina, mas o Dia Na Praia continua.",
 } as const;
 
 export const INFO_PRINCIPAIS = [
@@ -123,7 +123,7 @@ export const INFO_PRINCIPAIS = [
   { label: "Local", valor: "Na Praia Parque, Brasília" },
   { label: "Distância", valor: "6 km" },
   { label: "Formato", valor: "Largada e chegada dentro do parque" },
-  { label: "Day use", valor: "Até as 17h" },
+  { label: "Day use", valor: "Até às 17h" },
   { label: "Público", valor: "Corredores, clubes, assessorias, comunidades e acompanhantes credenciados" },
 ] as const;
 
@@ -152,7 +152,7 @@ export const DUAS_EXPERIENCIAS = {
   eyebrow: "UMA INSCRIÇÃO, DUAS EXPERIÊNCIAS",
   titulo: "Você corre. E o dia continua.",
   paragrafos: [
-    "A inscrição garante a participação do atleta na Corrida na Praia e também o acesso ao Dia Na Praia, com programação exclusiva até as 17h.",
+    "A inscrição garante a participação do atleta na Corrida na Praia e também o acesso ao Dia Na Praia, com programação exclusiva até às 17h.",
     "Além disso, cada corredor recebe um ingresso de cortesia para levar um acompanhante ao evento.",
   ],
   // O limite da cortesia precisa ficar explícito: é o ponto que mais gera
@@ -160,7 +160,7 @@ export const DUAS_EXPERIENCIAS = {
   cortesiaTitulo: "O que a cortesia dá, e o que não dá",
   cortesiaInclui: [
     "Entrada do acompanhante no Na Praia Parque",
-    "Acesso ao Dia Na Praia e à programação até as 17h",
+    "Acesso ao Dia Na Praia e à programação até às 17h",
   ],
   cortesiaNaoInclui: [
     "Kit oficial da corrida",
@@ -180,7 +180,7 @@ export const INCLUI = [
   "Aulão de alongamento e aquecimento antes da largada, com participação da Smart Fit",
   "Acesso à programação esportiva do Dia Na Praia",
   "Música e entretenimento durante o evento",
-  "Day use exclusivo no Na Praia Parque até as 17h",
+  "Day use exclusivo no Na Praia Parque até às 17h",
   "After dentro do parque, depois da corrida",
   "Uma cortesia para acompanhante",
 ] as const;
@@ -215,7 +215,7 @@ export const CRONOGRAMA = [
   },
   {
     titulo: "After no parque",
-    descricao: "O after exclusivo dentro do Na Praia, com day use válido até as 17h.",
+    descricao: "O after exclusivo dentro do Na Praia, com day use válido até às 17h.",
     destaque: true,
   },
 ] as const;
@@ -274,7 +274,7 @@ export const FAQ = [
   },
   {
     q: "Até que horas vai o day use?",
-    a: "O acesso ao Dia Na Praia é válido até as 17h.",
+    a: "O acesso ao Dia Na Praia é válido até às 17h.",
   },
   {
     q: "O acompanhante também pode correr?",
@@ -282,7 +282,7 @@ export const FAQ = [
   },
   {
     q: "A cortesia dá direito ao kit da corrida?",
-    a: "Não. O kit oficial é exclusivo de quem está inscrito na prova. A cortesia dá ao acompanhante a entrada no Na Praia Parque e o acesso ao Dia Na Praia até as 17h, mas não dá direito ao kit, à medalha nem à premiação.",
+    a: "Não. O kit oficial é exclusivo de quem está inscrito na prova. A cortesia dá ao acompanhante a entrada no Na Praia Parque e o acesso ao Dia Na Praia até às 17h, mas não dá direito ao kit, à medalha nem à premiação.",
   },
   {
     q: "O que está incluído no ingresso?",
@@ -298,7 +298,7 @@ export const FAQ = [
   },
   {
     q: "A Área Recovery está incluída?",
-    a: "Não. A Área Recovery, a personalização da medalha e o lounge open bar são experiências adicionais e podem ser adquiridas separadamente durante a inscrição.",
+    a: "Não. A Área Recovery, a personalização da medalha e o lounge open bar são experiências adicionais, que podem ser adquiridas separadamente durante a inscrição.",
   },
   {
     q: "Entrar na lista VIP garante o ingresso?",
