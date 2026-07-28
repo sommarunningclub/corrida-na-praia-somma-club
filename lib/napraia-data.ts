@@ -81,18 +81,26 @@ export const SORTEIO = {
   regra: "A participação está sujeita ao regulamento oficial da ação promocional.",
 } as const;
 
-/* ─── Pré-venda ──────────────────────────────────────────────────────────── */
+/* ─── Lista VIP ──────────────────────────────────────────────────────────── */
+// Os valores da pré-venda ainda não são públicos: a lista VIP existe para
+// medir intenção antes da abertura. Não colocar preço aqui.
 
-export const PRECOS = {
-  eyebrow: "LISTA VIP E PRÉ-VENDA",
+export const LISTA_VIP = {
+  eyebrow: "LISTA VIP",
   titulo: "Quem entra primeiro, corre na frente",
   descricao:
-    "Os cadastrados na lista VIP terão acesso antecipado à pré-venda da Corrida na Praia. O link será enviado por WhatsApp e e-mail.",
-  preVenda: "R$ 170,00",
-  preVendaDuracao: "Duração prevista de 7 dias",
-  vendaGeral: "a partir de R$ 180,00",
+    "As vagas da Corrida na Praia são limitadas. Quem estiver na lista VIP recebe o aviso de abertura antes de todo mundo e garante a chance de comprar primeiro.",
+  vantagens: [
+    "Acesso antecipado à abertura das vendas",
+    "Aviso por WhatsApp e e-mail antes da venda geral",
+    "Concorre a um ingresso para o show",
+  ],
+  destaques: [
+    { valor: "Vagas", label: "limitadas" },
+    { valor: "1º", label: "a saber da abertura" },
+  ],
   aviso:
-    "O cadastro na lista VIP não representa reserva, compra automática ou garantia de disponibilidade do ingresso.",
+    "O cadastro na lista VIP não representa reserva, compra automática ou garantia de disponibilidade do ingresso. Os valores serão divulgados na abertura das vendas.",
 } as const;
 
 /* ─── O evento ───────────────────────────────────────────────────────────── */

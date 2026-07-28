@@ -95,5 +95,16 @@ export async function POST(request: Request) {
       .eq("id", data.id);
   }
 
-  return NextResponse.json({ ok: true, emailEnviado: Boolean(resendId) });
+  return NextResponse.json({
+    ok: true,
+    emailEnviado: Boolean(resendId),
+    codigo: codigoDoTicket(data.id),
+  });
+}
+
+/** Código curto e legível para o ticket, derivado do uuid do lead.
+ *  Serve como referência visual na página de obrigado, não como credencial. */
+function codigoDoTicket(id: string): string {
+  const hex = id.replace(/-/g, "").slice(0, 6).toUpperCase();
+  return `NP-${hex}`;
 }

@@ -1,14 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { gsap, prefersReducedMotion } from "@/lib/gsap";
-import {
-  isValidCpf,
-  maskCpf,
-  maskPhone,
-  onlyDigits,
-  firstName,
-} from "@/lib/validation";
+import { useRouter } from "next/navigation";
+import { isValidCpf, maskCpf, maskPhone, onlyDigits } from "@/lib/validation";
+import { guardarComprovante, mascararCpf } from "@/lib/comprovante";
 
 type Campo = "nome" | "email" | "telefone" | "cpf";
 type Valores = Record<Campo, string>;
@@ -93,11 +88,10 @@ export function ListaVipForm() {
   const [tocado, setTocado] = useState<Partial<Record<Campo, boolean>>>({});
   const [enviando, setEnviando] = useState(false);
   const [erroGeral, setErroGeral] = useState("");
-  const [sucesso, setSucesso] = useState(false);
   const [utm, setUtm] = useState<Record<string, string>>({});
 
-  const sucessoRef = useRef<HTMLDivElement>(null);
   const honeypot = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   // Guarda as UTMs da URL para salvar junto com o lead.
   useEffect(() => {
@@ -109,16 +103,6 @@ export function ListaVipForm() {
     });
     setUtm(capturadas);
   }, []);
-
-  // Entrada animada do estado de sucesso.
-  useEffect(() => {
-    if (!sucesso || !sucessoRef.current || prefersReducedMotion()) return;
-    gsap.fromTo(
-      sucessoRef.current,
-      { opacity: 0, y: 24, scale: 0.98 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: "power3.out" }
-    );
-  }, [sucesso]);
 
   const alterar = (campo: Campo, bruto: string) => {
     const valor =
@@ -177,63 +161,26 @@ export function ListaVipForm() {
           });
           setErros((e) => ({ ...e, ...doServidor }));
         }
+        setEnviando(false);
         return;
       }
 
-      setSucesso(true);
+      // Guarda o comprovante para a página de obrigado montar o ticket.
+      // O CPF vai mascarado: não há motivo para deixar o número cru no storage.
+      guardarComprovante({
+        nome: valores.nome.trim(),
+        email: valores.email.trim().toLowerCase(),
+        telefone: valores.telefone.trim(),
+        cpfMascarado: mascararCpf(valores.cpf),
+        codigo: typeof dados?.codigo === "string" ? dados.codigo : null,
+      });
+
+      router.push("/obrigado");
     } catch {
       setErroGeral("Falha de conexão. Verifique sua internet e tente de novo.");
-    } finally {
       setEnviando(false);
     }
   };
-
-  if (sucesso) {
-    return (
-      <div
-        ref={sucessoRef}
-        role="status"
-        aria-live="polite"
-        className="rounded-panel border border-white/10 bg-dark-card p-8 text-center sm:p-12"
-      >
-        <div className="mx-auto mb-6 grid h-14 w-14 place-items-center rounded-full bg-primary">
-          <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="#fff" strokeWidth={2.5} aria-hidden>
-            <path d="M20 6 9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </div>
-        <h3 className="mb-3 text-[26px] font-bold leading-tight tracking-tight text-white sm:text-[30px]">
-          Boa, {firstName(valores.nome)}! Tá na lista.
-        </h3>
-        <p className="mx-auto mb-4 max-w-md text-[15px] leading-7 text-white/60">
-          Enviamos um e-mail para{" "}
-          <span className="font-medium text-white">{valores.email.toLowerCase()}</span>{" "}
-          com todos os detalhes. Confere a caixa de entrada (e o spam, por garantia).
-        </p>
-        <p className="mx-auto mb-8 max-w-md text-[14px] leading-6 text-white/45">
-          O link da pré-venda chega por WhatsApp e e-mail antes da venda geral. Você
-          também já está concorrendo ao ingresso do show.
-        </p>
-        <div className="flex flex-col justify-center gap-3 sm:flex-row">
-          <a
-            href="https://www.google.com/maps/search/?api=1&query=-15.818088,-47.8499962"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary w-full sm:w-auto"
-          >
-            Ver o local
-          </a>
-          <a
-            href="https://instagram.com/somma.club"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-ghost-dark w-full sm:w-auto"
-          >
-            Seguir o @somma.club
-          </a>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <form

@@ -1,12 +1,19 @@
 import { Reveal } from "@/components/ui/reveal";
 import { ListaVipForm } from "@/components/lista-vip-form";
 import { Sunburst } from "@/components/ui/sunburst";
-import { PRECOS, SORTEIO } from "@/lib/napraia-data";
+import { EVENTO, LISTA_VIP, SORTEIO } from "@/lib/napraia-data";
 
-const VANTAGENS = [
-  "Acesso antecipado à pré-venda",
-  "Link enviado por WhatsApp e e-mail",
-  "Concorre a um ingresso para o show",
+// Resumo do que o ingresso contempla. A lista completa fica na seção #inclui;
+// aqui é só o suficiente para a pessoa decidir entrar na lista.
+const CONTEMPLA = [
+  `Corrida de ${EVENTO.distancia} no ${EVENTO.local.nome}`,
+  "Kit oficial com camiseta LIVE!, boné e meia",
+  "Medalha de participação",
+  "Café da manhã e smoothies",
+  "Aulão de aquecimento com a Smart Fit",
+  `Day use no parque até as ${EVENTO.dayUseAte}`,
+  "After dentro do parque",
+  "Uma cortesia para acompanhante",
 ];
 
 export function Inscricao() {
@@ -17,61 +24,55 @@ export function Inscricao() {
       <div className="container-somma relative">
         <div className="grid gap-10 lg:grid-cols-[1fr_1.05fr] lg:items-start lg:gap-16">
           <Reveal>
-            <p className="eyebrow mb-4">{PRECOS.eyebrow}</p>
-            <h2 className="section-title mb-5 text-white">{PRECOS.titulo}</h2>
+            <p className="eyebrow mb-4">{LISTA_VIP.eyebrow}</p>
+            <h2 className="section-title mb-5 text-white">{LISTA_VIP.titulo}</h2>
             <p className="mb-8 text-[16px] leading-7 text-white/60 sm:text-lg sm:leading-8">
-              {PRECOS.descricao}
+              {LISTA_VIP.descricao}
             </p>
 
-            {/* Preços */}
-            <div className="mb-8 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-panel border border-primary/30 bg-primary/10 p-5">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
-                  Pré-venda lista VIP
-                </p>
-                <p className="text-[30px] font-bold leading-none tracking-tight text-white">
-                  {PRECOS.preVenda}
+            {/* Escassez no lugar do preço */}
+            <div className="mb-8 flex flex-wrap gap-3">
+              <div className="flex-1 rounded-panel border border-primary/30 bg-primary/10 px-5 py-4">
+                <p className="text-[22px] font-bold leading-none tracking-tight text-white sm:text-[26px]">
+                  Vagas limitadas
                 </p>
                 <p className="mt-2 text-[13px] leading-5 text-white/50">
-                  {PRECOS.preVendaDuracao}
+                  A corrida tem número máximo de participantes
                 </p>
               </div>
-              <div className="rounded-panel border border-white/12 bg-white/[0.04] p-5">
-                <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">
-                  Venda geral
-                </p>
-                <p className="text-[13px] leading-none text-white/45">a partir de</p>
-                <p className="mt-1 text-[30px] font-bold leading-none tracking-tight text-white/70">
-                  R$ 180,00
+              <div className="flex-1 rounded-panel border border-white/12 bg-white/[0.04] px-5 py-4">
+                <p className="text-[22px] font-bold leading-none tracking-tight text-white/80 sm:text-[26px]">
+                  Em breve
                 </p>
                 <p className="mt-2 text-[13px] leading-5 text-white/40">
-                  Depois da pré-venda
+                  Valores e data de abertura das vendas
                 </p>
               </div>
             </div>
 
-            <ul className="mb-6 space-y-3.5">
-              {VANTAGENS.map((v) => (
-                <li
-                  key={v}
-                  className="flex items-start gap-3 text-[15px] leading-6 text-white/75"
-                >
-                  <span className="mt-[3px] grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full bg-primary">
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="h-3 w-3"
-                      fill="none"
-                      stroke="#fff"
-                      strokeWidth={3.5}
-                      aria-hidden
-                    >
-                      <path d="M20 6 9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </span>
-                  {v}
-                </li>
-              ))}
-            </ul>
+            {/* O que o ingresso contempla */}
+            <div className="mb-6 rounded-panel border border-white/10 bg-white/[0.03] p-5 sm:p-6">
+              <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
+                O que o ingresso contempla
+              </p>
+              <ul className="grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
+                {CONTEMPLA.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-start gap-2.5 text-[14px] leading-6 text-white/75"
+                  >
+                    <span className="mt-[7px] h-[5px] w-[5px] shrink-0 rounded-full bg-primary" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <a
+                href="#inclui"
+                className="mt-4 inline-flex text-[13px] font-semibold text-primary underline-offset-4 hover:underline"
+              >
+                Ver a lista completa →
+              </a>
+            </div>
 
             {/* Reforço do sorteio */}
             <div className="mb-6 rounded-panel border border-r2/30 bg-r2/10 p-5">
@@ -86,7 +87,7 @@ export function Inscricao() {
               </p>
             </div>
 
-            <p className="text-[12px] leading-5 text-white/35">{PRECOS.aviso}</p>
+            <p className="text-[12px] leading-5 text-white/35">{LISTA_VIP.aviso}</p>
           </Reveal>
 
           <Reveal delay={0.12} y={36}>

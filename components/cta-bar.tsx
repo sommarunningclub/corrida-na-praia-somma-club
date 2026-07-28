@@ -44,7 +44,7 @@ export function CtaBar() {
             {EVENTO.dataCurta} · {EVENTO.distancia}
           </p>
           <p className="truncate text-[11px] leading-tight text-white/50">
-            Pré-venda a partir de R$ 170 na lista VIP
+            Vagas limitadas · entre na lista VIP
           </p>
         </div>
         <a

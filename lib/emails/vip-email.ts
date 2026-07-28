@@ -1,6 +1,6 @@
 import "server-only";
 import { Resend } from "resend";
-import { EVENTO, PRECOS, SOMMA, SORTEIO } from "@/lib/napraia-data";
+import { EVENTO, LISTA_VIP, SOMMA, SORTEIO } from "@/lib/napraia-data";
 import { firstName } from "@/lib/validation";
 
 interface SendVipArgs {
@@ -11,6 +11,12 @@ interface SendVipArgs {
 /** Envia o e-mail de confirmação da Lista VIP.
  *  Retorna o id do Resend (para gravar no lead) ou null se falhar. */
 export async function sendVipEmail({ nome, email }: SendVipArgs): Promise<string | null> {
+  // Chave de liga/desliga: com o envio desligado o cadastro responde na hora,
+  // sem esperar a ida ao Resend. Para religar, defina VIP_EMAIL_ENABLED=true.
+  if (process.env.VIP_EMAIL_ENABLED !== "true") {
+    return null;
+  }
+
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.VIP_EMAIL_FROM;
 
@@ -78,8 +84,9 @@ export function renderVipEmail({ nome }: { nome: string }): string {
         <tr><td style="padding:36px 32px 8px;">
           <p style="margin:0 0 16px;color:${INK};font-size:18px;line-height:28px;font-weight:600;">Boa, ${escapeHtml(primeiro)}!</p>
           <p style="margin:0 0 24px;color:#525252;font-size:16px;line-height:26px;">
-            Seu cadastro na lista VIP está confirmado. Você vai receber o link da
-            pré-venda por WhatsApp e e-mail, antes da venda geral.
+            Seu cadastro na lista VIP está confirmado. As vagas são limitadas e você
+            será avisado por WhatsApp e e-mail assim que as vendas abrirem, antes
+            do público geral.
           </p>
         </td></tr>
 
@@ -90,7 +97,7 @@ export function renderVipEmail({ nome }: { nome: string }): string {
             ${row("Onde", `${local.nome} — ${local.endereco}<br>${local.bairro}`)}
             ${row("Distância", `${EVENTO.distancia}, com largada e chegada dentro do parque`)}
             ${row("Day use", `Até as ${EVENTO.dayUseAte}`)}
-            ${row("Pré-venda", `${PRECOS.preVenda} · venda geral ${PRECOS.vendaGeral}`, true)}
+            ${row("Vagas", "Limitadas · você será avisado na abertura", true)}
           </table>
         </td></tr>
 
@@ -126,7 +133,7 @@ export function renderVipEmail({ nome }: { nome: string }): string {
         <!-- Aviso -->
         <tr><td style="padding:20px 32px 0;">
           <p style="margin:0;color:#a3a3a3;font-size:12px;line-height:20px;">
-            ${PRECOS.aviso} O horário de abertura dos portões e da largada ainda será
+            ${LISTA_VIP.aviso} O horário de abertura dos portões e da largada ainda será
             confirmado pela organização.
           </p>
         </td></tr>
@@ -167,13 +174,13 @@ export function renderVipEmailText({ nome }: { nome: string }): string {
     `Boa, ${firstName(nome)}!`,
     "",
     "Seu cadastro na lista VIP da Corrida na Praia está confirmado.",
-    "Você vai receber o link da pré-venda por WhatsApp e e-mail, antes da venda geral.",
+    "As vagas são limitadas e você será avisado por WhatsApp e e-mail assim que as vendas abrirem.",
     "",
     `Quando: ${EVENTO.dataExtenso}`,
     `Onde: ${local.nome} — ${local.endereco}, ${local.bairro}`,
     `Distância: ${EVENTO.distancia}, com largada e chegada dentro do parque`,
     `Day use: até as ${EVENTO.dayUseAte}`,
-    `Pré-venda: ${PRECOS.preVenda} · venda geral ${PRECOS.vendaGeral}`,
+    "Vagas: limitadas · você será avisado na abertura",
     "",
     `Você também está concorrendo a um ingresso para ${SORTEIO.atracoes} (${SORTEIO.data}, ${SORTEIO.hora}, ${SORTEIO.local}).`,
     "",
@@ -185,7 +192,7 @@ export function renderVipEmailText({ nome }: { nome: string }): string {
     "",
     `Mapa: ${local.maps}`,
     "",
-    PRECOS.aviso,
+    LISTA_VIP.aviso,
     "O horário de abertura dos portões e da largada ainda será confirmado pela organização.",
     "",
     `Dúvidas? Responda este e-mail ou chame no WhatsApp: ${SOMMA.links.whatsapp}`,

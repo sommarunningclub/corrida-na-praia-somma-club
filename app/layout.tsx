@@ -68,12 +68,13 @@ const eventJsonLd = {
     },
   },
   organizer: { "@type": "Organization", name: SOMMA.nome, url: SOMMA.links.site },
+  // Sem preço: os valores só serão divulgados na abertura das vendas.
   offers: {
     "@type": "Offer",
-    price: "170.00",
     priceCurrency: "BRL",
     availability: "https://schema.org/PreOrder",
-    description: "Pré-venda com acesso antecipado para cadastrados na lista VIP.",
+    description:
+      "Vagas limitadas. Cadastrados na lista VIP recebem o aviso de abertura das vendas antes do público geral.",
   },
   isAccessibleForFree: false,
 };

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { EVENTO, NAV, R2, SOMMA } from "@/lib/napraia-data";
+import { EVENTO, NAV, SOMMA } from "@/lib/napraia-data";
 
 export function Footer() {
   return (
@@ -8,41 +8,21 @@ export function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           {/* Marcas da collab */}
           <div className="lg:col-span-2">
-            <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-4">
-              <a
-                href={SOMMA.links.site}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={SOMMA.nome}
-                className="inline-flex"
-              >
-                <Image
-                  src={SOMMA.logo}
-                  alt={SOMMA.nome}
-                  width={131}
-                  height={35}
-                  className="h-[35px] w-auto"
-                />
-              </a>
-              <span aria-hidden className="text-lg font-medium text-white/25">
-                &amp;
-              </span>
-              <a
-                href={R2.site}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={R2.nome}
-                className="inline-flex"
-              >
-                <Image
-                  src={R2.logo}
-                  alt={R2.nome}
-                  width={68}
-                  height={35}
-                  className="h-[35px] w-auto"
-                />
-              </a>
-            </div>
+            <a
+              href={SOMMA.links.site}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={SOMMA.nome}
+              className="mb-5 inline-flex"
+            >
+              <Image
+                src={SOMMA.logo}
+                alt={SOMMA.nome}
+                width={146}
+                height={39}
+                className="h-[39px] w-auto"
+              />
+            </a>
 
             <p className="mb-6 max-w-sm text-[14px] leading-6 text-white/45">
               {EVENTO.nome}: {EVENTO.distancia} com largada e chegada dentro do{" "}
