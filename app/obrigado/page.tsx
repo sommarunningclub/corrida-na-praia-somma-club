@@ -11,9 +11,12 @@ export const metadata: Metadata = {
 
 export default function ObrigadoPage() {
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-navy-deep px-5 py-16 safe-top safe-bottom sm:px-6 sm:py-24">
-      <Sunburst className="pointer-events-none absolute -right-[30%] top-[6%] w-[90vw] max-w-[620px] opacity-[0.06] sm:-right-[15%] sm:w-[55vw]" />
-      <div className="relative">
+    // pt maior que pb: no iOS a barra do Safari come o rodapé, e o safe-bottom
+    // sozinho não dava respiro suficiente para o último botão.
+    <main className="relative min-h-dvh overflow-hidden bg-navy-deep safe-top safe-bottom">
+      <Sunburst className="pointer-events-none absolute -right-[38%] top-[4%] w-[95vw] max-w-[620px] opacity-[0.06] sm:-right-[15%] sm:w-[55vw]" />
+
+      <div className="relative mx-auto w-full max-w-[560px] px-6 pb-16 pt-12 sm:px-8 sm:pb-20 sm:pt-16 lg:pt-20">
         <ObrigadoTicket />
       </div>
     </main>

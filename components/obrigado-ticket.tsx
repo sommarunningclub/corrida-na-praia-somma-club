@@ -45,7 +45,7 @@ export function ObrigadoTicket() {
   // Acesso direto à URL, sem ter passado pelo formulário.
   if (estado === "vazio" || !dados) {
     return (
-      <div className="mx-auto max-w-md text-center">
+      <div className="mx-auto max-w-md px-1 text-center">
         <h1 className="mb-4 text-[28px] font-bold leading-tight tracking-tight text-white sm:text-[34px]">
           Não encontramos seu comprovante
         </h1>
@@ -62,8 +62,8 @@ export function ObrigadoTicket() {
   }
 
   return (
-    <div className="mx-auto max-w-[520px]">
-      <div className="mb-8 text-center">
+    <div>
+      <div className="mb-9 text-center sm:mb-10">
         <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-full bg-primary">
           <svg
             viewBox="0 0 24 24"
@@ -76,10 +76,10 @@ export function ObrigadoTicket() {
             <path d="M20 6 9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
-        <h1 className="mb-3 text-[28px] font-bold leading-tight tracking-tight text-white sm:text-[36px]">
+        <h1 className="mb-3 text-balance px-1 text-[27px] font-bold leading-[1.15] tracking-tight text-white sm:text-[34px]">
           Boa, {firstName(dados.nome)}! Você está na lista VIP.
         </h1>
-        <p className="text-[15px] leading-7 text-white/55">
+        <p className="mx-auto max-w-[42ch] text-[15px] leading-7 text-white/55">
           Guarde este comprovante. Você será avisado assim que as vendas abrirem,
           antes do público geral.
         </p>
@@ -179,7 +179,7 @@ export function ObrigadoTicket() {
       </div>
 
       {/* Sorteio */}
-      <div className="mt-6 rounded-panel border border-r2/30 bg-r2/10 p-5">
+      <div className="mt-5 rounded-panel border border-r2/30 bg-r2/10 p-5 sm:p-6">
         <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-r2">
           Você também está concorrendo
         </p>
@@ -191,14 +191,14 @@ export function ObrigadoTicket() {
         </p>
       </div>
 
-      <p className="mt-6 text-center text-[13px] leading-6 text-white/40">
+      <p className="mx-auto mt-6 max-w-[44ch] px-2 text-center text-[13px] leading-6 text-white/40">
         As vagas são limitadas e o cadastro não garante o ingresso. Avisaremos você
         pelo WhatsApp assim que as vendas abrirem.
       </p>
 
       {/* Boas-vindas de quem acabou de entrar na comunidade */}
       {dados.novoMembro && (
-        <div className="mt-6 rounded-panel border border-primary/30 bg-primary/10 p-6">
+        <div className="mt-6 rounded-panel border border-primary/30 bg-primary/10 p-5 sm:p-6">
           <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
             Bem-vindo ao Somma Club
           </p>
@@ -224,18 +224,18 @@ export function ObrigadoTicket() {
       )}
 
       {/* Chamar alguém para correr junto */}
-      <div className="mt-8 rounded-panel border border-white/10 bg-white/[0.04] p-6 text-center">
+      <div className="mt-6 rounded-panel border border-white/10 bg-white/[0.04] p-5 text-center sm:p-6">
         <p className="mb-2 text-[17px] font-semibold leading-snug text-white">
           Corrida boa é com gente boa junto
         </p>
-        <p className="mb-5 text-[14px] leading-6 text-white/50">
+        <p className="mx-auto mb-5 max-w-[38ch] text-[14px] leading-6 text-white/50">
           Chame quem você quer ver na largada. As vagas são limitadas para todo
           mundo.
         </p>
         <BotaoCompartilhar />
       </div>
 
-      <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+      <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
         <a
           href={SOMMA.links.instagram}
           target="_blank"
