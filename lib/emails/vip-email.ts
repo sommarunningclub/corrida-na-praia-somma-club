@@ -107,7 +107,8 @@ export function renderVipEmail({ nome }: { nome: string }): string {
             <tr><td style="padding:20px;">
               <p style="margin:0 0 6px;color:rgba(1,5,63,.7);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Você também está concorrendo</p>
               <p style="margin:0 0 4px;color:${NAVY};font-size:17px;line-height:24px;font-weight:700;">${SORTEIO.atracoes}</p>
-              <p style="margin:0;color:rgba(1,5,63,.65);font-size:13px;">${SORTEIO.data} · ${SORTEIO.hora} · ${SORTEIO.local}</p>
+              <p style="margin:0 0 4px;color:rgba(1,5,63,.65);font-size:13px;">Show · ${SORTEIO.showDia} · ${SORTEIO.hora} · ${SORTEIO.local}</p>
+              <p style="margin:0;color:${NAVY};font-size:13px;font-weight:700;">Sorteio · ${SORTEIO.sorteioDia}</p>
             </td></tr>
           </table>
         </td></tr>
@@ -118,8 +119,9 @@ export function renderVipEmail({ nome }: { nome: string }): string {
           <ul style="margin:0;padding-left:20px;color:#525252;font-size:15px;line-height:26px;">
             <li>Corrida de ${EVENTO.distancia} e kit oficial com camiseta, boné e meia</li>
             <li>Medalha, café da manhã e experiências de parceiros</li>
+            <li>Recovery e welcome drink no pós-prova</li>
             <li>Day use no ${local.nome} até às ${EVENTO.dayUseAte} e after no parque</li>
-            <li>Uma cortesia para levar um acompanhante</li>
+            <li>Uma cortesia para levar um acompanhante · crianças até 10 anos não pagam</li>
           </ul>
         </td></tr>
 
@@ -182,13 +184,16 @@ export function renderVipEmailText({ nome }: { nome: string }): string {
     `Day use: até às ${EVENTO.dayUseAte}`,
     "Vagas: limitadas · você será avisado na abertura",
     "",
-    `Você também está concorrendo a um ingresso para ${SORTEIO.atracoes} (${SORTEIO.data}, ${SORTEIO.hora}, ${SORTEIO.local}).`,
+    `Você também está concorrendo a um ingresso para ${SORTEIO.atracoes}.`,
+    `Show: ${SORTEIO.showDia}, ${SORTEIO.hora}, ${SORTEIO.local}.`,
+    `Sorteio: ${SORTEIO.sorteioDia}.`,
     "",
     "O ingresso inclui:",
     `- Corrida de ${EVENTO.distancia} e kit oficial com camiseta, boné e meia`,
     "- Medalha, café da manhã e experiências de parceiros",
+    "- Recovery e welcome drink no pós-prova",
     `- Day use no ${local.nome} até às ${EVENTO.dayUseAte} e after no parque`,
-    "- Uma cortesia para levar um acompanhante",
+    "- Uma cortesia para levar um acompanhante · crianças até 10 anos não pagam",
     "",
     `Mapa: ${local.maps}`,
     "",

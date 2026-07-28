@@ -99,7 +99,11 @@ export function lerTokenMembro(token: string): string | null {
 
 const tentativas = new Map<string, { contador: number; janelaAte: number }>();
 const JANELA_MS = 10 * 60 * 1000;
-const MAX_POR_JANELA = 10;
+// Folgado de propósito: em 4G brasileiro (CGNAT) muita gente divide o mesmo
+// IP, e a busca dispara sozinha a cada CPF completado, então corrigir um
+// dígito já custa uma tentativa. Mesmo assim varrer a base de ~6 mil CPFs
+// levaria dias por IP, que é o que este freio precisa impedir.
+const MAX_POR_JANELA = 40;
 
 /**
  * Freio simples por IP contra varredura de CPFs. É em memória: serve para uma

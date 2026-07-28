@@ -12,9 +12,11 @@ const CONTEMPLA = [
   "Medalha de participação",
   "Café da manhã e smoothies",
   "Aulão de aquecimento com a Smart Fit",
+  "Recovery e welcome drink no pós-prova",
   `Day use no parque até às ${EVENTO.dayUseAte}`,
   "After dentro do parque",
   "Uma cortesia para acompanhante",
+  "Crianças até 10 anos não pagam",
 ];
 
 export function Inscricao() {
@@ -89,7 +91,10 @@ export function Inscricao() {
                 {SORTEIO.atracoes}
               </p>
               <p className="mt-1 text-[13px] text-white/50">
-                {SORTEIO.data} · {SORTEIO.hora} · {SORTEIO.local}
+                Show · {SORTEIO.showDia} · {SORTEIO.hora} · {SORTEIO.local}
+              </p>
+              <p className="mt-2 text-[13px] font-semibold text-r2">
+                Sorteio · {SORTEIO.sorteioDia}
               </p>
             </div>
 

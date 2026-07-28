@@ -78,10 +78,16 @@ export const SORTEIO = {
   eyebrow: "AÇÃO ESPECIAL DA LISTA VIP",
   titulo: "Cadastre-se e concorra a um ingresso para o show",
   atracoes: "Nattan + Matheus & Kauan + Bia Frazzo",
+  // Show: sábado 01/08. Sorteio: sexta 31/07. Manter essa distinção visível na UI.
+  showDia: "Sábado, 1º de agosto",
   data: "1º de agosto de 2026",
   hora: "18h",
   local: "Na Praia Parque, Brasília",
+  sorteioDia: "Sexta-feira, 31 de julho",
+  quando: "Sorteio nesta sexta-feira, 31 de julho",
   regra: "A participação está sujeita ao regulamento oficial da ação promocional.",
+  poster: "/sorteio-nattan-matheus-kauan-bia.png",
+  url: "https://r2.com.vc/produto/01-08-nattan-matheus-e-kauan-bia-frazzo/",
 } as const;
 
 /* ─── Lista VIP ──────────────────────────────────────────────────────────── */
@@ -196,6 +202,7 @@ export const DUAS_EXPERIENCIAS = {
   cortesiaInclui: [
     "Entrada do acompanhante no Na Praia Parque",
     "Acesso ao Dia Na Praia e à programação até às 17h",
+    "Crianças até 10 anos não pagam",
   ],
   cortesiaNaoInclui: [
     "Kit oficial da corrida",
@@ -203,7 +210,7 @@ export const DUAS_EXPERIENCIAS = {
     "Medalha e premiação",
   ],
   nota:
-    "A cortesia permite que o acompanhante aproveite o Dia Na Praia enquanto o participante corre. Ela não é uma segunda inscrição: para correr, é necessário ter inscrição própria.",
+    "A cortesia permite que o acompanhante aproveite o Dia Na Praia enquanto o participante corre. Ela não é uma segunda inscrição: para correr, é necessário ter inscrição própria. Crianças até 10 anos não pagam.",
 } as const;
 
 export const INCLUI = [
@@ -213,11 +220,13 @@ export const INCLUI = [
   "Café da manhã",
   "Smoothies e experiências de parceiros",
   "Aulão de alongamento e aquecimento antes da largada, com participação da Smart Fit",
+  "Recovery e welcome drink no pós-prova",
   "Acesso à programação esportiva do Dia Na Praia",
   "Música e entretenimento durante o evento",
   "Day use exclusivo no Na Praia Parque até às 17h",
   "After dentro do parque, depois da corrida",
   "Uma cortesia para acompanhante",
+  "Crianças até 10 anos não pagam",
 ] as const;
 
 /* ─── O dia do evento ────────────────────────────────────────────────────── */
@@ -239,13 +248,15 @@ export const CRONOGRAMA = [
     destaque: true,
   },
   {
-    titulo: "Chegada e entrega de medalhas",
-    descricao: "Medalha de participação e premiação dos primeiros colocados.",
+    titulo: "Chegada, medalhas e recovery",
+    descricao:
+      "Medalha de participação, premiação dos primeiros colocados, recovery e welcome drink no pós-prova.",
     destaque: false,
   },
   {
     titulo: "Dia Na Praia",
-    descricao: "Música, experiências de wellness, alimentação e ativações de marcas.",
+    descricao:
+      "Música, experiências de wellness, alimentação, ativações de marcas e day use no parque.",
     destaque: false,
   },
   {
@@ -270,11 +281,12 @@ export const PREMIACAO = {
 export const ADICIONAIS = {
   eyebrow: "EXPERIÊNCIAS ADICIONAIS",
   titulo: "Dá para ir além do ingresso",
-  descricao: "Durante a inscrição, o participante poderá adicionar experiências complementares.",
+  descricao:
+    "Recovery e welcome drink no pós-prova já estão no ingresso. Durante a inscrição, o participante poderá adicionar experiências complementares.",
   itens: [
     {
-      titulo: "Área Recovery",
-      descricao: "Banheira de gelo e massagem para recuperação após a prova.",
+      titulo: "Área Recovery premium",
+      descricao: "Banheira de gelo e massagem para recuperação avançada após a prova.",
     },
     {
       titulo: "Personalização da medalha",
@@ -312,6 +324,10 @@ export const FAQ = [
     a: "O acesso ao Dia Na Praia é válido até às 17h.",
   },
   {
+    q: "Criança paga ingresso?",
+    a: "Crianças até 10 anos não pagam. A regra vale para o acesso ao Dia Na Praia vinculado à cortesia ou à inscrição do responsável.",
+  },
+  {
     q: "O acompanhante também pode correr?",
     a: "Não. A cortesia garante apenas o acesso do acompanhante ao evento. Para participar da corrida, é necessário ter inscrição própria.",
   },
@@ -321,7 +337,7 @@ export const FAQ = [
   },
   {
     q: "O que está incluído no ingresso?",
-    a: "A corrida, o kit oficial, medalha, café da manhã, smoothies, aquecimento, experiências de parceiros, acesso à programação esportiva, after, day use e uma cortesia para acompanhante.",
+    a: "A corrida, o kit oficial, medalha, café da manhã, smoothies, aquecimento, recovery e welcome drink no pós-prova, experiências de parceiros, acesso à programação esportiva, after, day use e uma cortesia para acompanhante. Crianças até 10 anos não pagam.",
   },
   {
     q: "O parque estará aberto ao público geral?",
@@ -332,8 +348,8 @@ export const FAQ = [
     a: "Sim. Serão premiados os três primeiros colocados masculinos e os três primeiros colocados femininos.",
   },
   {
-    q: "A Área Recovery está incluída?",
-    a: "Não. A Área Recovery, a personalização da medalha e o lounge open bar são experiências adicionais, que podem ser adquiridas separadamente durante a inscrição.",
+    q: "Recovery e welcome drink estão incluídos?",
+    a: "Sim. Recovery e welcome drink no pós-prova fazem parte do ingresso. Já a Área Recovery premium, com banheira de gelo e massagem, a personalização da medalha e o lounge open bar são experiências adicionais, adquiridas separadamente.",
   },
   {
     q: "Entrar na lista VIP garante o ingresso?",

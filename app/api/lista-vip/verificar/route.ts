@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServiceSupabase, LISTA_VIP_TABLE } from "@/lib/supabase";
-import { isValidCpf, onlyDigits } from "@/lib/validation";
+import { onlyDigits } from "@/lib/validation";
 import {
   CPF_TABELA_MEMBROS,
   criarTokenMembro,
@@ -40,8 +40,11 @@ export async function POST(request: Request) {
   const cpfBruto = (payload as { cpf?: unknown } | null)?.cpf;
   const cpf = typeof cpfBruto === "string" ? onlyDigits(cpfBruto) : "";
 
-  if (!isValidCpf(cpf)) {
-    return NextResponse.json({ error: "CPF inválido." }, { status: 422 });
+  // Só exige 11 dígitos: esta rota apenas consulta. Um CPF com dígito
+  // verificador errado simplesmente não é encontrado e a pessoa segue para o
+  // cadastro, onde o campo fica visível para correção. Sem erro no caminho.
+  if (cpf.length !== 11) {
+    return NextResponse.json({ error: "Informe os 11 dígitos do CPF." }, { status: 422 });
   }
 
   const supabase = getServiceSupabase();

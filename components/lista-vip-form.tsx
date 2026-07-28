@@ -78,6 +78,8 @@ export function ListaVipForm() {
   const [encerrado, setEncerrado] = useState(false);
 
   const honeypot = useRef<HTMLInputElement>(null);
+  // Guarda o último CPF já consultado para não repetir a busca.
+  const ultimoConsultado = useRef("");
   const router = useRouter();
 
   useEffect(() => {
@@ -109,26 +111,33 @@ export function ListaVipForm() {
 
   /* ─── Etapa 1: identificar pelo CPF ────────────────────────────────────── */
 
-  const verificarCpf = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setErroGeral("");
+  /**
+   * Consulta a base e decide o caminho. Não existe "CPF inválido" aqui: quem
+   * não está na base simplesmente cai no cadastro, que é o destino certo
+   * tanto para quem digitou errado quanto para quem é novo de verdade.
+   */
+  const identificar = async (valor: string) => {
+    const digitos = onlyDigits(valor);
+    if (digitos.length !== 11 || enviando) return;
 
-    if (!isValidCpf(cpf)) {
-      setErros({ cpf: "CPF inválido." });
-      return;
-    }
-    setErros({});
+    // Evita repetir a consulta do mesmo CPF (efeito + submit manual).
+    if (ultimoConsultado.current === digitos) return;
+    ultimoConsultado.current = digitos;
+
+    setErroGeral("");
     setEnviando(true);
 
     try {
       const resposta = await fetch("/api/lista-vip/verificar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cpf }),
+        body: JSON.stringify({ cpf: digitos }),
       });
       const dados = await resposta.json().catch(() => ({}));
 
       if (!resposta.ok) {
+        // Deixa tentar de novo com o mesmo CPF depois de uma falha.
+        ultimoConsultado.current = "";
         setErroGeral(dados?.error ?? "Não foi possível verificar. Tente novamente.");
         return;
       }
@@ -143,12 +152,28 @@ export function ListaVipForm() {
         setEtapa("confirmar");
         return;
       }
+      // Não é da base: abre o cadastro na hora.
       setEtapa("cadastro");
     } catch {
+      ultimoConsultado.current = "";
       setErroGeral("Falha de conexão. Verifique sua internet e tente de novo.");
     } finally {
       setEnviando(false);
     }
+  };
+
+  // Dispara sozinho assim que o CPF fica completo, sem precisar do botão.
+  useEffect(() => {
+    if (etapa !== "cpf") return;
+    if (onlyDigits(cpf).length !== 11) return;
+    const id = window.setTimeout(() => void identificar(cpf), 250);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cpf, etapa]);
+
+  const verificarCpf = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await identificar(cpf);
   };
 
   /* ─── Etapa 2a: membro confirma ────────────────────────────────────────── */
@@ -209,9 +234,16 @@ export function ListaVipForm() {
       if (erro) novos[c] = erro;
     });
 
+    if (!isValidCpf(cpf)) {
+      novos.cpf = "Confira o CPF digitado.";
+    }
+
     if (Object.keys(novos).length > 0) {
       setErros(novos);
-      document.getElementById((Object.keys(novos) as CampoCadastro[])[0])?.focus();
+      const primeiro = Object.keys(novos)[0];
+      document
+        .getElementById(primeiro === "cpf" ? "cpf-cadastro" : primeiro)
+        ?.focus();
       return;
     }
     if (!aceite) {
@@ -385,12 +417,33 @@ export function ListaVipForm() {
           Entre para a comunidade
         </h3>
         <p className="mb-6 text-[14px] leading-6 text-white/55">
-          Não encontramos o CPF <span className="font-medium text-white/80">{cpf}</span>{" "}
-          na nossa base. Faça seu cadastro no Somma Club, sem custo, e entre na lista
-          VIP na mesma hora.
+          Não encontramos esse CPF na nossa base. Faça seu cadastro no Somma Club,
+          sem custo, e entre na lista VIP na mesma hora.
         </p>
 
         <div className="space-y-5">
+          {/* CPF editável aqui: é o único ponto do fluxo em que corrigir um
+              dígito errado faz sentido, com o campo à vista. */}
+          <Campo
+            id="cpf-cadastro"
+            label="CPF"
+            inputMode="numeric"
+            placeholder="000.000.000-00"
+            maxLength={14}
+            valor={cpf}
+            erro={erros.cpf}
+            onChange={(v) => {
+              setCpf(maskCpf(v));
+              if (erros.cpf) setErros((e) => ({ ...e, cpf: undefined }));
+            }}
+            onBlur={() =>
+              setErros((e) => ({
+                ...e,
+                cpf: isValidCpf(cpf) ? undefined : "Confira o CPF digitado.",
+              }))
+            }
+            disabled={enviando}
+          />
           <Campo
             id="nome"
             label="Nome completo"
@@ -553,31 +606,32 @@ export function ListaVipForm() {
       <label htmlFor="cpf" className="mb-2 block text-[13px] font-medium text-white/70">
         CPF
       </label>
-      <input
-        id="cpf"
-        name="cpf"
-        inputMode="numeric"
-        autoComplete="off"
-        enterKeyHint="go"
-        maxLength={14}
-        placeholder="000.000.000-00"
-        value={cpf}
-        onChange={(e) => {
-          setCpf(maskCpf(e.target.value));
-          if (erros.cpf) setErros({});
-        }}
-        disabled={enviando}
-        aria-invalid={Boolean(erros.cpf)}
-        aria-describedby={erros.cpf ? "cpf-erro" : undefined}
-        className={`field border-white/12 bg-white/[0.04] text-white placeholder:text-white/25 focus:border-primary focus:ring-primary/25 disabled:opacity-60 ${
-          erros.cpf ? "border-primary/70" : ""
-        }`}
-      />
-      {erros.cpf && (
-        <p id="cpf-erro" className="mt-1.5 text-[13px] text-primary">
-          {erros.cpf}
-        </p>
-      )}
+      <div className="relative">
+        <input
+          id="cpf"
+          name="cpf"
+          inputMode="numeric"
+          autoComplete="off"
+          enterKeyHint="go"
+          maxLength={14}
+          placeholder="000.000.000-00"
+          value={cpf}
+          onChange={(e) => setCpf(maskCpf(e.target.value))}
+          disabled={enviando}
+          aria-describedby="cpf-ajuda"
+          className="field border-white/12 bg-white/[0.04] pr-12 text-white placeholder:text-white/25 focus:border-primary focus:ring-primary/25 disabled:opacity-60"
+        />
+        {enviando && (
+          <span
+            aria-hidden
+            className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin rounded-full border-2 border-white/20 border-t-primary"
+          />
+        )}
+      </div>
+
+      <p id="cpf-ajuda" className="mt-2 text-[13px] leading-5 text-white/40" aria-live="polite">
+        {enviando ? "Procurando seu cadastro…" : "Assim que completar, buscamos você na base."}
+      </p>
 
       {erroGeral && (
         <p role="alert" className="mt-5 rounded-xl bg-primary/10 px-4 py-3 text-[14px] text-primary">
@@ -585,7 +639,13 @@ export function ListaVipForm() {
         </p>
       )}
 
-      <button type="submit" disabled={enviando} className="btn-primary mt-6 w-full disabled:opacity-70">
+      {/* O envio acontece sozinho ao completar o CPF; o botão fica como
+          alternativa para quem navega por teclado ou colou o número. */}
+      <button
+        type="submit"
+        disabled={enviando || onlyDigits(cpf).length !== 11}
+        className="btn-primary mt-6 w-full disabled:opacity-40"
+      >
         {enviando ? "Verificando…" : "Continuar"}
         {!enviando && <span aria-hidden>→</span>}
       </button>

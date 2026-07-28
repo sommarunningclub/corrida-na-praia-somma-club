@@ -187,7 +187,10 @@ export function ObrigadoTicket() {
           {SORTEIO.atracoes}
         </p>
         <p className="mt-1 text-[13px] text-white/50">
-          {SORTEIO.data} · {SORTEIO.hora} · {SORTEIO.local}
+          Show · {SORTEIO.showDia} · {SORTEIO.hora} · {SORTEIO.local}
+        </p>
+        <p className="mt-2 text-[13px] font-semibold text-r2">
+          Sorteio · {SORTEIO.sorteioDia}
         </p>
       </div>
 

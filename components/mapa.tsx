@@ -4,23 +4,67 @@ import { useEffect, useRef, useState } from "react";
 import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
 import { EVENTO } from "@/lib/napraia-data";
 
-/** Estilo monocromático para o mapa não brigar com o laranja da marca. */
-const MAP_STYLE: google.maps.MapTypeStyle[] = [
-  { elementType: "geometry", stylers: [{ color: "#f5f5f5" }] },
-  { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-  { elementType: "labels.text.fill", stylers: [{ color: "#737373" }] },
-  { elementType: "labels.text.stroke", stylers: [{ color: "#ffffff" }] },
-  { featureType: "administrative", elementType: "geometry", stylers: [{ visibility: "off" }] },
-  { featureType: "poi", elementType: "labels.text", stylers: [{ visibility: "off" }] },
-  { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#e8e8e8" }] },
-  { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-  { featureType: "road.arterial", elementType: "labels", stylers: [{ visibility: "off" }] },
-  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#eeeeee" }] },
-  { featureType: "road.local", elementType: "labels", stylers: [{ visibility: "off" }] },
-  { featureType: "transit", stylers: [{ visibility: "off" }] },
-  { featureType: "water", elementType: "geometry", stylers: [{ color: "#c9d9e0" }] },
-  { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#8fa5b0" }] },
-];
+type OverlayCtor = typeof google.maps.OverlayView;
+
+/**
+ * Overlay HTML no ponto da largada: selo Na Praia com leve 3D + pulso.
+ * OverlayView permite CSS/animação; Marker clássico não.
+ */
+function montarMarcador3D(
+  OverlayView: OverlayCtor,
+  LatLng: typeof google.maps.LatLng,
+  map: google.maps.Map,
+  position: google.maps.LatLngLiteral
+) {
+  class NapraiaMarker extends OverlayView {
+    private el: HTMLDivElement | null = null;
+
+    onAdd() {
+      const wrap = document.createElement("div");
+      wrap.className = "napraia-map-pin";
+      wrap.setAttribute("role", "img");
+      wrap.setAttribute(
+        "aria-label",
+        `${EVENTO.local.nome} · largada e chegada`
+      );
+      wrap.innerHTML = `
+        <span class="napraia-map-pin__ring" aria-hidden="true"></span>
+        <span class="napraia-map-pin__ring napraia-map-pin__ring--delay" aria-hidden="true"></span>
+        <span class="napraia-map-pin__shadow" aria-hidden="true"></span>
+        <img
+          class="napraia-map-pin__logo"
+          src="/logo-napraia.png"
+          alt=""
+          width="88"
+          height="88"
+          draggable="false"
+        />
+      `;
+      this.getPanes()?.overlayMouseTarget.appendChild(wrap);
+      this.el = wrap;
+    }
+
+    draw() {
+      const projection = this.getProjection();
+      if (!projection || !this.el) return;
+      const point = projection.fromLatLngToDivPixel(
+        new LatLng(position.lat, position.lng)
+      );
+      if (!point) return;
+      this.el.style.left = `${point.x}px`;
+      this.el.style.top = `${point.y}px`;
+    }
+
+    onRemove() {
+      this.el?.remove();
+      this.el = null;
+    }
+  }
+
+  const marker = new NapraiaMarker();
+  marker.setMap(map);
+  return marker;
+}
 
 export function Mapa() {
   const ref = useRef<HTMLDivElement>(null);
@@ -34,46 +78,38 @@ export function Mapa() {
     }
 
     let cancelado = false;
+    let overlay: google.maps.OverlayView | null = null;
 
-    // setOptions precisa vir antes de qualquer importLibrary.
     setOptions({ key, v: "weekly" });
 
     (async () => {
       try {
-        const [{ Map }, { Marker }, { Point }] = await Promise.all([
+        const [{ Map, OverlayView }, { LatLng }] = await Promise.all([
           importLibrary("maps"),
-          importLibrary("marker"),
           importLibrary("core"),
         ]);
-
         if (cancelado || !ref.current) return;
+
         const { lat, lng } = EVENTO.local.geo;
 
         const map = new Map(ref.current, {
           center: { lat, lng },
-          zoom: 15,
-          styles: MAP_STYLE,
+          zoom: 16,
+          mapTypeId: "hybrid", // satélite + rótulos
           disableDefaultUI: true,
           zoomControl: true,
-          gestureHandling: "cooperative", // no mobile, 1 dedo rola a página
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+          gestureHandling: "cooperative",
           clickableIcons: false,
           keyboardShortcuts: false,
+          // Leve inclinação onde o Google Maps WebGL permitir.
+          tilt: 45,
+          heading: 20,
         });
 
-        new Marker({
-          map,
-          position: { lat, lng },
-          title: `${EVENTO.local.nome} · largada ${EVENTO.horaLargada}`,
-          icon: {
-            path: "M12 0C5.37 0 0 5.37 0 12c0 9 12 24 12 24s12-15 12-24c0-6.63-5.37-12-12-12z",
-            fillColor: "#FF2C03",
-            fillOpacity: 1,
-            strokeColor: "#ffffff",
-            strokeWeight: 2.5,
-            scale: 1.35,
-            anchor: new Point(12, 36),
-          },
-        });
+        overlay = montarMarcador3D(OverlayView, LatLng, map, { lat, lng });
       } catch (err) {
         console.error("[mapa] Falha ao carregar o Google Maps:", err);
         if (!cancelado) setErro(true);
@@ -82,11 +118,11 @@ export function Mapa() {
 
     return () => {
       cancelado = true;
+      overlay?.setMap(null);
     };
   }, []);
 
   if (erro) {
-    // Fallback: o endereço nunca fica inacessível se a API falhar.
     return (
       <a
         href={EVENTO.local.maps}
@@ -106,8 +142,8 @@ export function Mapa() {
     <div
       ref={ref}
       role="application"
-      aria-label={`Mapa com o ponto de largada em ${EVENTO.local.nome}`}
-      className="h-full min-h-[280px] w-full rounded-card bg-light"
+      aria-label={`Mapa satélite com o ponto de largada em ${EVENTO.local.nome}`}
+      className="h-full min-h-[280px] w-full rounded-card bg-[#1a2a1a]"
     />
   );
 }
