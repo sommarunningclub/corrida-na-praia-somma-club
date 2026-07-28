@@ -1,0 +1,246 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Tokens do design system SOMMA ──────────────────────────────────────── */
+:root {
+  --primary: #ff2c03;
+  --primary-hover: #fb4c00;
+  --ink: #0a0a0a;
+  --muted: #737373;
+  --light: #f5f5f5;
+  --sand: #fdf1e0;
+
+  /* Alturas reais em iOS (barra do Safari entra/sai) */
+  --header-h: 64px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ─── Base ───────────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%; /* iOS não reescala texto no giro */
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--header-h) + var(--safe-top) + 16px);
+  }
+
+  /* Quem prefere menos movimento não recebe smooth scroll nem animação. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    @apply bg-white text-ink antialiased;
+    font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+    /* Sem bounce horizontal e sem pull-to-refresh acidental no iOS */
+    overscroll-behavior-y: none;
+    overflow-x: hidden;
+    /* Remove o flash cinza do tap no iOS — usamos :active próprio */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Inputs com 16px: abaixo disso o iOS dá zoom automático no foco. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  /* Aparência nativa fora — o estilo é nosso. */
+  input,
+  textarea,
+  select,
+  button {
+    -webkit-appearance: none;
+    appearance: none;
+    border-radius: 0;
+  }
+
+  ::selection {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  /* Tipografia display: tracking negativo, como no site do Somma. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply tracking-display;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/* ─── Componentes ────────────────────────────────────────────────────────── */
+@layer components {
+  .container-somma {
+    @apply mx-auto w-full max-w-container px-5 sm:px-6 lg:px-8;
+  }
+
+  /* Ritmo vertical generoso das seções (≈112px), reduzido no mobile. */
+  .section {
+    @apply py-16 sm:py-24 lg:py-section;
+  }
+
+  .eyebrow {
+    @apply text-[13px] font-medium uppercase tracking-[0.18em] text-primary sm:text-sm;
+  }
+
+  /* Não usar o nome "h-section": colidiria com o utilitário de altura
+     gerado por spacing.section no tailwind.config. */
+  .section-title {
+    @apply text-[32px] font-semibold leading-[1.08] sm:text-[40px] lg:text-5xl;
+  }
+
+  /* Botões pill — alvo de toque mínimo de 44px (HIG da Apple). */
+  .btn {
+    @apply inline-flex min-h-[48px] select-none items-center justify-center gap-2
+           rounded-full px-7 text-[15px] font-semibold leading-none
+           transition-[transform,background-color,color,border-color] duration-200
+           active:scale-[0.97];
+    touch-action: manipulation;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-primary-hover;
+  }
+
+  .btn-dark {
+    @apply btn bg-ink text-white hover:bg-ink/90;
+  }
+
+  .btn-ghost {
+    @apply btn border border-black/10 bg-transparent text-ink hover:border-black/25;
+  }
+
+  .btn-ghost-dark {
+    @apply btn border border-white/20 bg-transparent text-white hover:border-white/45;
+  }
+
+  .card {
+    @apply rounded-card border border-black/10 bg-white shadow-card;
+  }
+
+  .card-dark {
+    @apply rounded-card border border-white/10 bg-dark-card;
+  }
+
+  .icon-box {
+    @apply flex h-11 w-11 items-center justify-center rounded-xl bg-primary-soft text-primary;
+  }
+
+  .field {
+    @apply h-[52px] w-full rounded-xl border border-black/10 bg-white px-4
+           text-base text-ink placeholder:text-muted/70
+           transition-colors duration-200
+           focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20;
+  }
+
+  .field-error {
+    @apply border-primary/60 focus:border-primary focus:ring-primary/25;
+  }
+
+  /* Ponto laranja da marca — o "." do wordmark somma. */
+  .brand-dot {
+    @apply inline-block bg-primary align-baseline;
+  }
+}
+
+/* ─── Utilidades ─────────────────────────────────────────────────────────── */
+@layer utilities {
+  /* Altura de viewport que não "pula" quando a barra do Safari some.
+     Nome próprio para não colidir com os h-dvh/min-h-dvh do Tailwind,
+     que não trazem o fallback em vh para iOS antigo. */
+  .h-viewport {
+    height: 100vh;
+    height: 100dvh;
+  }
+  .min-h-viewport {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .safe-top {
+    padding-top: var(--safe-top);
+  }
+  .safe-bottom {
+    padding-bottom: var(--safe-bottom);
+  }
+
+  /* Scroll horizontal com snap e momentum — carrosséis estilo iOS. */
+  .scroll-snap-x {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .scroll-snap-x::-webkit-scrollbar {
+    display: none;
+  }
+  .snap-item {
+    scroll-snap-align: start;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  /* Vidro fosco do header, com fallback para quem não suporta. */
+  .glass {
+    background-color: rgba(255, 255, 255, 0.72);
+  }
+  @supports (backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px)) {
+    .glass {
+      background-color: rgba(255, 255, 255, 0.6);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
+    }
+  }
+
+  /* Navy em vez de preto: o header cruza seções claras (creme, branco) e o
+     preto translúcido virava um cinza sujo. O azul da marca mantém o
+     contraste do texto branco e continua parecendo do mesmo mundo. */
+  .glass-dark {
+    background-color: rgba(1, 5, 63, 0.92);
+  }
+  @supports (backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px)) {
+    .glass-dark {
+      background-color: rgba(1, 5, 63, 0.78);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
+    }
+  }
+
+  /* Estado inicial dos elementos animados por GSAP.
+     .is-ready é aplicado pelo componente Reveal assim que o JS assume;
+     sem JS o conteúdo aparece normalmente (ver <noscript> no layout). */
+  .gsap-hidden {
+    opacity: 0;
+  }
+
+  .text-shadow-hero {
+    text-shadow: 0 2px 40px rgba(0, 0, 0, 0.45);
+  }
+}
