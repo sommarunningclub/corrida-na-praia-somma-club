@@ -1,5 +1,6 @@
 import { Reveal } from "@/components/ui/reveal";
 import { ListaVipForm } from "@/components/lista-vip-form";
+import { PrazoListaVip } from "@/components/prazo-lista-vip";
 import { Sunburst } from "@/components/ui/sunburst";
 import { EVENTO, LISTA_VIP, SORTEIO } from "@/lib/napraia-data";
 
@@ -29,6 +30,11 @@ export function Inscricao() {
             <p className="mb-8 text-[16px] leading-7 text-white/60 sm:text-lg sm:leading-8">
               {LISTA_VIP.descricao}
             </p>
+
+            {/* Prazo de encerramento da lista */}
+            <div className="mb-6">
+              <PrazoListaVip />
+            </div>
 
             {/* Escassez no lugar do preço */}
             <div className="mb-8 flex flex-wrap gap-3">

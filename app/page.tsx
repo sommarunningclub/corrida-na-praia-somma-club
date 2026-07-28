@@ -4,6 +4,7 @@ import { Sorteio } from "@/components/sorteio";
 import { Sobre } from "@/components/sobre";
 import { Percurso } from "@/components/percurso";
 import { Inclui } from "@/components/inclui";
+import { Prioridade } from "@/components/prioridade";
 import { Cronograma } from "@/components/cronograma";
 import { Espaco } from "@/components/espaco";
 import { Extras } from "@/components/extras";
@@ -23,6 +24,7 @@ export default function Page() {
         <Sobre />
         <Percurso />
         <Inclui />
+        <Prioridade />
         <Cronograma />
         <Espaco />
         <Extras />

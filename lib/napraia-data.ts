@@ -44,6 +44,9 @@ export const SOMMA = {
     site: "https://sommaclub.com.br",
     email: "contato@sommaclub.com.br",
     telefone: "+55 (61) 99537-2477",
+    // Convite do grupo da comunidade, mostrado a quem acabou de virar membro.
+    // Deixe vazio para cair no WhatsApp de atendimento.
+    grupo: "",
   },
 } as const;
 
@@ -85,11 +88,43 @@ export const SORTEIO = {
 // Os valores da pré-venda ainda não são públicos: a lista VIP existe para
 // medir intenção antes da abertura. Não colocar preço aqui.
 
+// Encerramento das inscrições na lista VIP: 1º de agosto de 2026, no fim do dia.
+export const LISTA_VIP_PRAZO = "2026-08-01T23:59:59-03:00";
+
+export const PRIORIDADE = {
+  eyebrow: "COMO VAI FUNCIONAR A VENDA",
+  titulo: "A comunidade Somma compra primeiro",
+  descricao:
+    "A venda dos ingressos acontece em duas etapas. Quem é do Somma Club tem prioridade e compra antes de todo mundo. Depois, o que sobrar vai para o público geral.",
+  etapas: [
+    {
+      ordem: "01",
+      titulo: "Comunidade Somma Club",
+      descricao:
+        "Quem já é membro do Somma Club e entrou na lista VIP recebe o aviso primeiro e compra antes da abertura geral.",
+      destaque: true,
+    },
+    {
+      ordem: "02",
+      titulo: "Público geral",
+      descricao:
+        "Depois do prazo da comunidade, as vagas restantes são abertas para todo mundo, enquanto durarem.",
+      destaque: false,
+    },
+  ],
+  aviso:
+    "Prioridade não é reserva: as vagas são limitadas e podem acabar ainda na etapa da comunidade.",
+  chamadaNaoMembro:
+    "Ainda não é do Somma Club? Dá tempo. Faça seu cadastro na lista VIP e entre para a comunidade agora, sem custo.",
+} as const;
+
 export const LISTA_VIP = {
   eyebrow: "LISTA VIP",
   titulo: "Quem entra primeiro, corre na frente",
   descricao:
-    "As vagas da Corrida na Praia são limitadas. Quem estiver na lista VIP recebe o aviso de abertura antes de todo mundo e garante a chance de comprar primeiro.",
+    "As vagas da Corrida na Praia são limitadas e a comunidade Somma Club compra primeiro. Entre na lista VIP para receber o aviso de abertura antes do público geral.",
+  prazoTitulo: "As inscrições na lista VIP terminam em",
+  prazoEncerrado: "As inscrições na lista VIP foram encerradas.",
   // Sem promessa de e-mail: o disparo automático está desligado.
   // O aviso sai pelo WhatsApp, com o telefone informado no cadastro.
   vantagens: [

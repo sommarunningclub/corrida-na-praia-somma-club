@@ -12,6 +12,9 @@ export type Comprovante = {
   telefone: string;
   cpfMascarado: string;
   codigo: string | null;
+  /** true quando a pessoa acabou de entrar na comunidade pelo formulário.
+   *  A página de obrigado usa isso para convidar ao grupo do WhatsApp. */
+  novoMembro?: boolean;
 };
 
 const CHAVE = "napraia:comprovante";
@@ -37,6 +40,7 @@ export function lerComprovante(): Comprovante | null {
       telefone: dados.telefone ?? "",
       cpfMascarado: dados.cpfMascarado ?? "",
       codigo: dados.codigo ?? null,
+      novoMembro: dados.novoMembro ?? false,
     };
   } catch {
     return null;
