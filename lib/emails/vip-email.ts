@@ -247,16 +247,15 @@ export function renderVipEmail({ nome }: { nome: string }): string {
 
         <!-- ─── Cabeçalho: as duas marcas ─── -->
         <tr><td bgcolor="${NAVY}" style="padding:26px 28px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <!-- As duas marcas juntas à esquerda, como um lockup só. -->
+          <table role="presentation" cellpadding="0" cellspacing="0">
             <tr>
-              <td align="left" valign="middle">
+              <td valign="middle">
                 <img src="${base}/email/logo-somma.png" width="132" alt="${SOMMA.nome}" style="display:block;border:0;">
               </td>
-              <td align="right" valign="middle">
-                <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-                  <td style="color:rgba(255,255,255,.3);font-size:17px;padding-right:12px;">&amp;</td>
-                  <td><img src="${base}/email/logo-r2.png" width="68" alt="${R2.nome}" style="display:block;border:0;"></td>
-                </tr></table>
+              <td valign="middle" style="color:rgba(255,255,255,.35);font-size:17px;padding:0 14px;">&amp;</td>
+              <td valign="middle">
+                <img src="${base}/email/logo-r2.png" width="68" alt="${R2.nome}" style="display:block;border:0;">
               </td>
             </tr>
           </table>
