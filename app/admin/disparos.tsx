@@ -3,9 +3,11 @@
 import { useMemo, useState, useTransition } from "react";
 import { verDisparo, type EstadoDisparo } from "@/app/admin/actions";
 import { ROTULO_STATUS, type LeadAdmin } from "@/lib/admin-tipos";
+import type { Papel } from "@/lib/admin-auth";
 import {
   ABERTOS,
   CHEGARAM,
+  Chip,
   Folha,
   GRUPO_ABERTOS,
   GRUPO_CHEGARAM,
@@ -39,7 +41,10 @@ const FUNIL = [
   "canceled",
 ];
 
-export function Disparos({ leads }: { leads: LeadAdmin[] }) {
+/** Esconde a barra de rolagem do carrossel sem tirar o gesto de arrastar. */
+const SEM_BARRA = "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+
+export function Disparos({ leads, papel }: { leads: LeadAdmin[]; papel: Papel }) {
   const [busca, setBusca] = useState("");
   const [filtro, setFiltro] = useState("todos");
   const [aberto, setAberto] = useState<LeadAdmin | null>(null);
@@ -125,20 +130,56 @@ export function Disparos({ leads }: { leads: LeadAdmin[] }) {
 
   return (
     <>
-      <div className="mb-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5 lg:gap-3">
+      {/* Celular: cabeçalho e busca fixos, métricas em carrossel. */}
+      <div className="sticky top-0 z-30 -mx-4 border-b border-white/[0.06] bg-[#0b0b0f]/85 px-4 pb-2.5 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-xl lg:hidden">
+        <h1 className="text-[26px] font-bold leading-none tracking-tight">Disparos</h1>
+        <p className="mt-1 truncate text-[12px] text-white/40">
+          {comDisparo.length} e-mails enviados
+          {papel === "leitor" && " · somente leitura"}
+        </p>
+        <div className="relative mt-2.5">
+          <svg viewBox="0 0 24 24" className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-white/30" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" strokeLinecap="round" />
+          </svg>
+          <input
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar pessoa, e-mail ou ID do Resend"
+            className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.06] pl-10 pr-3 text-[16px] outline-none transition placeholder:text-white/30 focus:border-primary/50"
+          />
+        </div>
+      </div>
+
+      <div className={`-mx-4 mt-3 overflow-x-auto px-4 lg:hidden ${SEM_BARRA}`}>
+        <div className="flex snap-x gap-2 pb-0.5">
+          {taxas.map((t) => (
+            <Chip
+              key={t.rotulo}
+              rotulo={t.rotulo}
+              valor={t.valor}
+              tom={t.tom}
+              ativo={t.ativo}
+              aoClicar={t.aoClicar}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-5 hidden grid-cols-5 gap-3 lg:grid">
         {taxas.map((t) => (
           <button
             key={t.rotulo}
             type="button"
             onClick={t.aoClicar}
-            className={`rounded-2xl border p-3.5 text-left transition active:scale-[0.98] hover:border-white/25 hover:bg-white/[0.06] lg:p-4 ${
+            className={`rounded-2xl border p-4 text-left transition hover:border-white/25 hover:bg-white/[0.06] ${
               t.ativo ? "border-white/30 bg-white/[0.08]" : "border-white/10 bg-white/[0.03]"
             }`}
           >
-            <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-white/40 lg:text-[11px]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-white/40">
               {t.rotulo}
             </p>
-            <p className={`mt-1.5 text-[22px] font-bold leading-none tracking-tight lg:text-[26px] ${t.tom}`}>
+            <p className={`mt-1.5 text-[26px] font-bold leading-none tracking-tight ${t.tom}`}>
               {t.valor}
             </p>
             <p className="mt-1 text-[11px] font-medium text-white/30">{t.parte}</p>
@@ -147,7 +188,7 @@ export function Disparos({ leads }: { leads: LeadAdmin[] }) {
       </div>
 
       {/* Distribuição por evento */}
-      <div className="mb-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+      <div className="mb-5 mt-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 lg:mt-0">
         <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">
           Onde cada disparo parou
         </p>
@@ -193,7 +234,7 @@ export function Disparos({ leads }: { leads: LeadAdmin[] }) {
         value={busca}
         onChange={(e) => setBusca(e.target.value)}
         placeholder="Buscar disparo por pessoa, e-mail ou ID do Resend"
-        className="mb-3 h-12 w-full rounded-xl border border-white/12 bg-black/30 px-4 text-[16px] outline-none transition placeholder:text-white/25 focus:border-primary/60"
+        className="mb-3 hidden h-12 w-full rounded-xl border border-white/12 bg-black/30 px-4 text-[15px] outline-none transition placeholder:text-white/25 focus:border-primary/60 lg:block"
       />
 
       {/* Deixa explícito o recorte em que a lista está, com saída fácil. */}
@@ -219,21 +260,23 @@ export function Disparos({ leads }: { leads: LeadAdmin[] }) {
         )}
       </div>
 
-      <ul className="space-y-2">
-        {visiveis.map((l) => (
+      <ul className="overflow-hidden rounded-2xl border border-white/[0.08]">
+        {visiveis.map((l, i) => (
           <li key={l.id}>
             <button
               type="button"
               onClick={() => setAberto(l)}
-              className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 text-left transition active:scale-[0.99] hover:bg-white/[0.06]"
+              className={`flex w-full items-center gap-3 bg-white/[0.03] px-3.5 py-3 text-left transition active:bg-white/[0.09] hover:bg-white/[0.06] ${
+                i > 0 ? "border-t border-white/[0.06]" : ""
+              }`}
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[15px] font-semibold">{l.nome}</p>
-                <p className="mt-0.5 truncate text-[13px] text-white/45">{l.email}</p>
+                <p className="truncate text-[15px] font-semibold leading-tight">{l.nome}</p>
+                <p className="mt-1 truncate text-[13px] text-white/40">{l.email}</p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 <Selo status={l.email_status} />
-                <svg viewBox="0 0 24 24" className="h-5 w-5 text-white/25" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
+                <svg viewBox="0 0 24 24" className="h-4 w-4 text-white/20" fill="none" stroke="currentColor" strokeWidth={2.4} aria-hidden>
                   <path d="m9 18 6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>

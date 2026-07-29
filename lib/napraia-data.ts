@@ -44,11 +44,28 @@ export const SOMMA = {
     site: "https://sommaclub.com.br",
     email: "contato@sommaclub.com.br",
     telefone: "+55 (61) 99537-2477",
-    // Convite do grupo da comunidade, mostrado a quem acabou de virar membro.
-    // Deixe vazio para cair no WhatsApp de atendimento.
-    grupo: "",
   },
 } as const;
+
+/* ─── Grupos do WhatsApp da comunidade ───────────────────────────────────── */
+// Quem acaba de virar membro é convidado para um destes, em rodízio, para os
+// grupos crescerem parelhos. As URLs são a forma canônica do convite
+// (chat.whatsapp.com/<código>), sem os parâmetros de rastreio que o app anexa
+// ao copiar o link. Abrir um grupo novo é acrescentar uma linha aqui: o rodízio
+// se ajusta sozinho ao tamanho da lista.
+export const GRUPOS_WHATSAPP = [
+  { numero: 1, url: "https://chat.whatsapp.com/HqEzvY8SbSvImtGaw3UkEk" },
+  { numero: 2, url: "https://chat.whatsapp.com/B5MSnH8DoasDVfgMlbuAng" },
+  { numero: 3, url: "https://chat.whatsapp.com/Cw7SxDvVDDW6kAW0fj06FT" },
+] as const;
+
+/** URL do convite a partir do número gravado no cadastro.
+ *  Devolve null para quem não tem grupo atribuído (já era membro, cadastros
+ *  anteriores a esta feature) ou se o número não existir mais na lista. */
+export function urlDoGrupo(numero: number | null | undefined): string | null {
+  if (!numero) return null;
+  return GRUPOS_WHATSAPP.find((g) => g.numero === numero)?.url ?? null;
+}
 
 export const R2 = {
   nome: "R2",

@@ -150,6 +150,114 @@ export function Folha({
   );
 }
 
+/* ─── Chip de filtro ──────────────────────────────────────────────────────── */
+
+/** Pílula do carrossel de métricas: número grande, rótulo curto, estado ativo. */
+export function Chip({
+  rotulo,
+  valor,
+  tom = "text-white",
+  ativo,
+  aoClicar,
+}: {
+  rotulo: string;
+  valor: number | string;
+  tom?: string;
+  ativo?: boolean;
+  aoClicar?: () => void;
+}) {
+  const Tag = aoClicar ? "button" : "div";
+  return (
+    <Tag
+      {...(aoClicar ? { type: "button" as const, onClick: aoClicar } : {})}
+      className={`flex shrink-0 snap-start flex-col justify-center rounded-2xl border px-3.5 py-2.5 text-left transition active:scale-[0.97] ${
+        ativo ? "border-white/35 bg-white/[0.1]" : "border-white/10 bg-white/[0.04]"
+      }`}
+    >
+      <span className={`text-[19px] font-bold leading-none tracking-tight ${tom}`}>
+        {valor}
+      </span>
+      <span className="mt-1 whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.08em] text-white/40">
+        {rotulo}
+      </span>
+    </Tag>
+  );
+}
+
+/* ─── Action sheet ────────────────────────────────────────────────────────── */
+
+export type Acao = {
+  rotulo: string;
+  aoClicar: () => void;
+  tom?: "normal" | "destaque" | "perigo";
+  desativado?: boolean;
+};
+
+/** Menu de ações do iOS: sobe do rodapé, opções empilhadas, Cancelar à parte. */
+export function ActionSheet({
+  titulo,
+  acoes,
+  aoFechar,
+}: {
+  titulo?: string;
+  acoes: Acao[];
+  aoFechar: () => void;
+}) {
+  useEffect(() => {
+    const anterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && aoFechar();
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = anterior;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [aoFechar]);
+
+  const cor = (t: Acao["tom"]) =>
+    t === "perigo" ? "text-red-400" : t === "destaque" ? "text-primary" : "text-white";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-sm sm:items-center"
+      onClick={aoFechar}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="w-full max-w-[420px]" onClick={(e) => e.stopPropagation()}>
+        <div className="overflow-hidden rounded-2xl bg-[#1c1c22]/95 backdrop-blur">
+          {titulo && (
+            <p className="border-b border-white/[0.08] px-4 py-3 text-center text-[12px] text-white/45">
+              {titulo}
+            </p>
+          )}
+          {acoes.map((a) => (
+            <button
+              key={a.rotulo}
+              type="button"
+              disabled={a.desativado}
+              onClick={() => {
+                a.aoClicar();
+                aoFechar();
+              }}
+              className={`block w-full border-b border-white/[0.08] px-4 py-[15px] text-center text-[17px] font-medium transition last:border-b-0 active:bg-white/10 disabled:opacity-40 ${cor(a.tom)}`}
+            >
+              {a.rotulo}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={aoFechar}
+          className="mt-2 w-full rounded-2xl bg-[#1c1c22]/95 py-[15px] text-[17px] font-semibold backdrop-blur transition active:bg-white/10"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Campo de formulário ─────────────────────────────────────────────────── */
 
 /** text-[16px] não é estética: abaixo disso o iOS dá zoom ao focar o campo. */

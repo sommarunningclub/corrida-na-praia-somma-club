@@ -6,6 +6,7 @@ import {
   adicionarLead,
   alternarFormulario,
   removerLead,
+  sair,
   salvarLead,
   sincronizarEmails,
   type EstadoAcao,
@@ -19,8 +20,10 @@ import {
 } from "@/lib/admin-tipos";
 import type { Papel } from "@/lib/admin-auth";
 import {
+  ActionSheet,
   CHEGARAM,
   Campo,
+  Chip,
   Folha,
   GRUPO_CHEGARAM,
   GRUPO_PROBLEMAS,
@@ -29,6 +32,7 @@ import {
   combinaStatus,
   dataHora,
   telefoneVisivel,
+  type Acao,
 } from "@/app/admin/ui";
 
 function baixarCsv(leads: LeadAdmin[]) {
@@ -59,6 +63,9 @@ function baixarCsv(leads: LeadAdmin[]) {
   URL.revokeObjectURL(url);
 }
 
+/** Esconde a barra de rolagem do carrossel sem tirar o gesto de arrastar. */
+const SEM_BARRA = "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+
 export function Inscritos({
   leads,
   fechada,
@@ -76,6 +83,7 @@ export function Inscritos({
   const [aberto, setAberto] = useState<LeadAdmin | null>(null);
   const [editando, setEditando] = useState(false);
   const [novo, setNovo] = useState(false);
+  const [menu, setMenu] = useState(false);
   const [aviso, setAviso] = useState<EstadoAcao>(null);
   const [pendente, iniciar] = useTransition();
   const router = useRouter();
@@ -117,11 +125,53 @@ export function Inscritos({
     setBusca("");
   };
 
-  const cartoes = [
+  const atualizar = () => iniciar(() => router.refresh());
+
+  const sincronizar = () => iniciar(async () => setAviso(await sincronizarEmails()));
+
+  const alternar = () => {
+    const proxima = !fechada;
+    if (
+      !confirm(
+        proxima
+          ? "Fechar o formulário? O site deixa de aceitar novos cadastros na hora."
+          : "Reabrir o formulário? O site volta a aceitar cadastros."
+      )
+    )
+      return;
+    iniciar(async () => setAviso(await alternarFormulario(proxima)));
+  };
+
+  /** As mesmas ações servem o action sheet do celular e a barra do desktop. */
+  const acoes: Acao[] = podeEditar
+    ? [
+        { rotulo: "Novo inscrito", aoClicar: () => setNovo(true), tom: "destaque" },
+        {
+          rotulo: pendente ? "Consultando o Resend…" : "Atualizar status de entrega",
+          aoClicar: sincronizar,
+          desativado: pendente,
+        },
+        { rotulo: `Baixar CSV (${visiveis.length})`, aoClicar: () => baixarCsv(visiveis) },
+        {
+          rotulo: fechada ? "Reabrir formulário da lista VIP" : "Fechar formulário da lista VIP",
+          aoClicar: alternar,
+          tom: fechada ? "normal" : "perigo",
+          desativado: pendente,
+        },
+      ]
+    : [];
+
+  // "Sair" mora no menu do celular — inclusive para o leitor, que não tem
+  // nenhuma outra ação e ficaria sem como encerrar a sessão.
+  const acoesMobile: Acao[] = [
+    ...acoes,
+    { rotulo: "Sair do painel", aoClicar: () => iniciar(() => sair()), tom: "perigo" },
+  ];
+
+  const filtros = [
     {
-      rotulo: filtrando ? "Filtrados" : "Cadastros",
+      rotulo: filtrando ? "Filtrados" : "Todos",
       valor: base.length,
-      parte: filtrando ? `de ${leads.length}` : undefined,
       tom: "text-white",
       aoClicar: limpar,
       ativo: !filtrando,
@@ -129,7 +179,6 @@ export function Inscritos({
     {
       rotulo: "Já eram membros",
       valor: jaMembros,
-      parte: fatia(jaMembros),
       tom: "text-sky-300",
       aoClicar: () => setFiltroOrigem(ORIGEM_MEMBRO),
       ativo: filtroOrigem === ORIGEM_MEMBRO,
@@ -137,15 +186,13 @@ export function Inscritos({
     {
       rotulo: "Novos membros",
       valor: novosMembros,
-      parte: fatia(novosMembros),
       tom: "text-violet-300",
       aoClicar: () => setFiltroOrigem(ORIGEM_NOVO),
       ativo: filtroOrigem === ORIGEM_NOVO,
     },
     {
-      rotulo: "E-mails entregues",
+      rotulo: "Entregues",
       valor: entregues,
-      parte: fatia(entregues),
       tom: "text-emerald-300",
       aoClicar: () => setFiltroStatus(GRUPO_CHEGARAM),
       ativo: filtroStatus === GRUPO_CHEGARAM,
@@ -153,148 +200,245 @@ export function Inscritos({
     {
       rotulo: "Não chegaram",
       valor: problemas,
-      parte: fatia(problemas),
       tom: "text-red-300",
       aoClicar: () => setFiltroStatus(GRUPO_PROBLEMAS),
       ativo: filtroStatus === GRUPO_PROBLEMAS,
-    },
-    {
-      rotulo: "Formulário",
-      valor: fechada ? "Fechado" : "Aberto",
-      tom: fechada ? "text-amber-300" : "text-emerald-300",
     },
   ];
 
   return (
     <>
-      {/* Números */}
-      <div className="mb-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6 lg:gap-3">
-        {cartoes.map((c) => {
-          const Tag = c.aoClicar ? "button" : "div";
-          return (
-            <Tag
-              key={c.rotulo}
-              {...(c.aoClicar ? { type: "button" as const, onClick: c.aoClicar } : {})}
-              className={`rounded-2xl border p-3.5 text-left transition lg:p-4 ${
-                c.ativo ? "border-white/30 bg-white/[0.08]" : "border-white/10 bg-white/[0.03]"
-              } ${c.aoClicar ? "active:scale-[0.98] hover:border-white/25 hover:bg-white/[0.06]" : ""}`}
-            >
-              <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-white/40 lg:text-[11px]">
-                {c.rotulo}
+      {/* ═══════════════ CELULAR ═══════════════
+          Cabeçalho e busca grudam no topo; a lista é o que ocupa a tela. */}
+      <div className="lg:hidden">
+        <div className="sticky top-0 z-30 -mx-4 border-b border-white/[0.06] bg-[#0b0b0f]/85 px-4 pb-2.5 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-xl">
+          <div className="mb-2.5 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="text-[26px] font-bold leading-none tracking-tight">Lista VIP</h1>
+              <p className="mt-1 truncate text-[12px] text-white/40">
+                {filtrando ? `${visiveis.length} de ${leads.length}` : `${leads.length} inscritos`}
+                {" · "}
+                <span className={fechada ? "text-amber-300" : "text-emerald-300"}>
+                  {fechada ? "formulário fechado" : "formulário aberto"}
+                </span>
+                {papel === "leitor" && " · somente leitura"}
               </p>
-              <p className={`mt-1.5 text-[22px] font-bold leading-none tracking-tight lg:text-[26px] ${c.tom}`}>
-                {c.valor}
-              </p>
-              {c.parte && <p className="mt-1 text-[11px] font-medium text-white/30">{c.parte}</p>}
-            </Tag>
-          );
-        })}
-      </div>
+            </div>
 
-      {/* Ações */}
-      <div className="mb-5 rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 lg:p-4">
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            disabled={pendente}
-            onClick={() => iniciar(() => router.refresh())}
-            className="inline-flex min-h-[42px] items-center gap-2 rounded-full bg-white/10 px-4 text-[13px] font-semibold transition active:scale-[0.97] hover:bg-white/16 disabled:opacity-50"
-          >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
-              <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" strokeLinecap="round" strokeLinejoin="round" />
+            <div className="flex shrink-0 items-center gap-1.5">
+              <button
+                type="button"
+                onClick={atualizar}
+                disabled={pendente}
+                aria-label="Atualizar"
+                className="grid h-10 w-10 place-items-center rounded-full bg-white/[0.08] transition active:scale-90 disabled:opacity-40"
+              >
+                <svg viewBox="0 0 24 24" className={`h-[18px] w-[18px] ${pendente ? "animate-spin" : ""}`} fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
+                  <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              {podeEditar && (
+                <button
+                  type="button"
+                  onClick={() => setNovo(true)}
+                  aria-label="Novo inscrito"
+                  className="grid h-10 w-10 place-items-center rounded-full bg-primary transition active:scale-90"
+                >
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.4} aria-hidden>
+                    <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+                  </svg>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setMenu(true)}
+                aria-label="Mais ações"
+                className="grid h-10 w-10 place-items-center rounded-full bg-white/[0.08] transition active:scale-90"
+              >
+                <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="currentColor" aria-hidden>
+                  <circle cx="5" cy="12" r="1.8" />
+                  <circle cx="12" cy="12" r="1.8" />
+                  <circle cx="19" cy="12" r="1.8" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div className="relative">
+            <svg viewBox="0 0 24 24" className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-white/30" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" strokeLinecap="round" />
             </svg>
-            Atualizar
-          </button>
-
-          {podeEditar && (
-            <>
+            <input
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar nome, e-mail, telefone ou CPF"
+              className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.06] pl-10 pr-9 text-[16px] outline-none transition placeholder:text-white/30 focus:border-primary/50"
+            />
+            {busca && (
               <button
                 type="button"
-                onClick={() => setNovo(true)}
-                className="inline-flex min-h-[42px] items-center gap-1.5 rounded-full bg-primary px-4 text-[13px] font-semibold text-white transition active:scale-[0.97] hover:bg-primary-hover"
+                onClick={() => setBusca("")}
+                aria-label="Limpar busca"
+                className="absolute right-2 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white/60"
               >
-                <span aria-hidden className="text-[17px] leading-none">+</span>
-                Novo inscrito
+                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.6} aria-hidden>
+                  <path d="M18 6 6 18M6 6l12 12" strokeLinecap="round" />
+                </svg>
               </button>
+            )}
+          </div>
+        </div>
 
-              <button
-                type="button"
-                disabled={pendente}
-                onClick={() => iniciar(async () => setAviso(await sincronizarEmails()))}
-                className="min-h-[42px] rounded-full bg-white/10 px-4 text-[13px] font-semibold transition active:scale-[0.97] hover:bg-white/16 disabled:opacity-50"
-              >
-                {pendente ? "Consultando o Resend…" : "Atualizar status de entrega"}
-              </button>
-
-              <button
-                type="button"
-                disabled={pendente}
-                onClick={() => {
-                  const proxima = !fechada;
-                  if (
-                    !confirm(
-                      proxima
-                        ? "Fechar o formulário? O site deixa de aceitar novos cadastros na hora."
-                        : "Reabrir o formulário? O site volta a aceitar cadastros."
-                    )
-                  )
-                    return;
-                  iniciar(async () => setAviso(await alternarFormulario(proxima)));
-                }}
-                className={`min-h-[42px] rounded-full px-4 text-[13px] font-semibold transition active:scale-[0.97] disabled:opacity-50 ${
-                  fechada
-                    ? "bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30"
-                    : "bg-amber-500/20 text-amber-200 hover:bg-amber-500/30"
-                }`}
-              >
-                {fechada ? "Reabrir formulário" : "Fechar formulário"}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => baixarCsv(visiveis)}
-                className="min-h-[42px] rounded-full border border-white/12 px-4 text-[13px] font-semibold text-white/70 transition active:scale-[0.97] hover:border-white/25 hover:text-white"
-              >
-                Baixar CSV ({visiveis.length})
-              </button>
-            </>
-          )}
+        {/* Métricas viram carrossel: informam sem empurrar a lista para baixo. */}
+        <div className={`-mx-4 mt-3 overflow-x-auto px-4 ${SEM_BARRA}`}>
+          <div className="flex snap-x gap-2 pb-0.5">
+            {filtros.map((f) => (
+              <Chip key={f.rotulo} {...f} />
+            ))}
+          </div>
         </div>
 
         {aviso && (
-          <p className={`mt-3 text-[13px] font-medium ${aviso.ok ? "text-emerald-300" : "text-red-300"}`}>
+          <p
+            className={`mt-3 rounded-xl px-3.5 py-2.5 text-[13px] font-medium ${
+              aviso.ok
+                ? "bg-emerald-500/10 text-emerald-300"
+                : "bg-red-500/10 text-red-300"
+            }`}
+          >
             {aviso.mensagem}
           </p>
         )}
 
-        {podeEditar ? (
-          <p className="mt-3 text-[12px] leading-5 text-white/35">
-            A sincronização pergunta ao Resend o último evento de cada e-mail enviado.
-            O Resend limita a 2 consultas por segundo, então a lista inteira leva cerca
-            de {Math.max(1, Math.round((leads.length * 0.46) / 5) * 5)} segundos hoje —
-            deixe a aba aberta até terminar.
-          </p>
-        ) : (
-          <p className="mt-3 text-[12px] leading-5 text-white/35">
-            Seu acesso é somente leitura: dá para consultar e filtrar, não para alterar
-            ou exportar.
-          </p>
-        )}
+        <ul className="mt-3 overflow-hidden rounded-2xl border border-white/[0.08]">
+          {visiveis.map((l, i) => (
+            <li key={l.id}>
+              <button
+                type="button"
+                onClick={() => setAberto(l)}
+                className={`flex w-full items-center gap-3 bg-white/[0.03] px-3.5 py-3 text-left transition active:bg-white/[0.09] ${
+                  i > 0 ? "border-t border-white/[0.06]" : ""
+                }`}
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[15px] font-semibold leading-tight">{l.nome}</p>
+                  <p className="mt-1 truncate text-[13px] text-white/40">{l.email}</p>
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    <Selo status={l.email_status} />
+                    <span className="truncate text-[11px] text-white/30">
+                      {ORIGEM_ROTULO[l.origem] ?? l.origem}
+                    </span>
+                  </div>
+                </div>
+                <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-white/20" fill="none" stroke="currentColor" strokeWidth={2.4} aria-hidden>
+                  <path d="m9 18 6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
 
-      {/* Busca e filtros */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        <input
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          placeholder="Buscar por nome, e-mail, telefone ou CPF"
-          className="h-12 min-w-0 flex-1 rounded-xl border border-white/12 bg-black/30 px-4 text-[16px] outline-none transition placeholder:text-white/25 focus:border-primary/60"
-        />
-        <div className="flex w-full gap-2 sm:w-auto">
+      {/* ═══════════════ DESKTOP ═══════════════ */}
+      <div className="hidden lg:block">
+        <div className="mb-5 grid grid-cols-6 gap-3">
+          {[
+            ...filtros.map((f) => ({
+              ...f,
+              parte: f.rotulo === "Todos" || f.rotulo === "Filtrados"
+                ? filtrando ? `de ${leads.length}` : undefined
+                : fatia(f.valor),
+            })),
+            {
+              rotulo: "Formulário",
+              valor: fechada ? "Fechado" : "Aberto",
+              tom: fechada ? "text-amber-300" : "text-emerald-300",
+              aoClicar: undefined,
+              ativo: false,
+              parte: undefined,
+            },
+          ].map((c) => {
+            const Tag = c.aoClicar ? "button" : "div";
+            return (
+              <Tag
+                key={c.rotulo}
+                {...(c.aoClicar ? { type: "button" as const, onClick: c.aoClicar } : {})}
+                className={`rounded-2xl border p-4 text-left transition ${
+                  c.ativo ? "border-white/30 bg-white/[0.08]" : "border-white/10 bg-white/[0.03]"
+                } ${c.aoClicar ? "hover:border-white/25 hover:bg-white/[0.06]" : ""}`}
+              >
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-white/40">
+                  {c.rotulo}
+                </p>
+                <p className={`mt-1.5 text-[26px] font-bold leading-none tracking-tight ${c.tom}`}>
+                  {c.valor}
+                </p>
+                {c.parte && <p className="mt-1 text-[11px] font-medium text-white/30">{c.parte}</p>}
+              </Tag>
+            );
+          })}
+        </div>
+
+        <div className="mb-5 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={pendente}
+              onClick={atualizar}
+              className="inline-flex min-h-[42px] items-center gap-2 rounded-full bg-white/10 px-4 text-[13px] font-semibold transition hover:bg-white/16 disabled:opacity-50"
+            >
+              <svg viewBox="0 0 24 24" className={`h-4 w-4 ${pendente ? "animate-spin" : ""}`} fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
+                <path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Atualizar
+            </button>
+
+            {acoes.map((a) => (
+              <button
+                key={a.rotulo}
+                type="button"
+                disabled={a.desativado}
+                onClick={a.aoClicar}
+                className={`min-h-[42px] rounded-full px-4 text-[13px] font-semibold transition disabled:opacity-50 ${
+                  a.tom === "destaque"
+                    ? "bg-primary text-white hover:bg-primary-hover"
+                    : a.tom === "perigo"
+                      ? "bg-amber-500/20 text-amber-200 hover:bg-amber-500/30"
+                      : "bg-white/10 hover:bg-white/16"
+                }`}
+              >
+                {a.rotulo}
+              </button>
+            ))}
+          </div>
+
+          {aviso && (
+            <p className={`mt-3 text-[13px] font-medium ${aviso.ok ? "text-emerald-300" : "text-red-300"}`}>
+              {aviso.mensagem}
+            </p>
+          )}
+
+          <p className="mt-3 text-[12px] leading-5 text-white/35">
+            {podeEditar
+              ? `A sincronização pergunta ao Resend o último evento de cada e-mail enviado. O Resend limita a 2 consultas por segundo, então a lista inteira leva cerca de ${Math.max(1, Math.round((leads.length * 0.46) / 5) * 5)} segundos hoje — deixe a aba aberta até terminar.`
+              : "Seu acesso é somente leitura: dá para consultar e filtrar, não para alterar ou exportar."}
+          </p>
+        </div>
+
+        <div className="mb-4 flex flex-wrap gap-2">
+          <input
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar por nome, e-mail, telefone ou CPF"
+            className="h-12 min-w-0 flex-1 rounded-xl border border-white/12 bg-black/30 px-4 text-[15px] outline-none transition placeholder:text-white/25 focus:border-primary/60"
+          />
           <select
             value={filtroOrigem}
             onChange={(e) => setFiltroOrigem(e.target.value)}
-            className="h-12 flex-1 rounded-xl border border-white/12 bg-black/30 px-3 text-[16px] outline-none focus:border-primary/60 sm:flex-none sm:text-[14px]"
+            className="h-12 rounded-xl border border-white/12 bg-black/30 px-3 text-[14px] outline-none focus:border-primary/60"
           >
             <option value="todos">Todas as origens</option>
             {[...new Set(leads.map((l) => l.origem))].map((o) => (
@@ -306,10 +450,9 @@ export function Inscritos({
           <select
             value={filtroStatus}
             onChange={(e) => setFiltroStatus(e.target.value)}
-            className="h-12 flex-1 rounded-xl border border-white/12 bg-black/30 px-3 text-[16px] outline-none focus:border-primary/60 sm:flex-none sm:text-[14px]"
+            className="h-12 rounded-xl border border-white/12 bg-black/30 px-3 text-[14px] outline-none focus:border-primary/60"
           >
             <option value="todos">Todos os status</option>
-            {/* Os mesmos grupos dos cartões, para o select refletir o clique. */}
             <option value={GRUPO_CHEGARAM}>
               Chegaram ({leads.filter((l) => CHEGARAM.includes(l.email_status ?? "")).length})
             </option>
@@ -323,90 +466,67 @@ export function Inscritos({
             ))}
           </select>
         </div>
-      </div>
 
-      {/* Mobile: cartões tocáveis. Tabela em telas grandes. */}
-      <ul className="space-y-2 lg:hidden">
-        {visiveis.map((l) => (
-          <li key={l.id}>
-            <button
-              type="button"
-              onClick={() => setAberto(l)}
-              className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 text-left transition active:scale-[0.99] active:bg-white/[0.07]"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[15px] font-semibold">{l.nome}</p>
-                <p className="mt-0.5 truncate text-[13px] text-white/45">{l.email}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <Selo status={l.email_status} />
-                  <span className="rounded-full border border-white/12 px-2 py-1 text-[11px] text-white/45">
-                    {ORIGEM_ROTULO[l.origem] ?? l.origem}
-                  </span>
-                </div>
-              </div>
-              <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-white/25" fill="none" stroke="currentColor" strokeWidth={2.2} aria-hidden>
-                <path d="m9 18 6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <div className="hidden overflow-x-auto rounded-2xl border border-white/10 lg:block">
-        <table className="w-full min-w-[900px] border-collapse text-left">
-          <thead>
-            <tr className="bg-white/[0.04] text-[11px] uppercase tracking-[0.1em] text-white/40">
-              {["Pessoa", "Contato", "CPF", "Origem", "E-mail", "Cadastro"].map((h) => (
-                <th key={h} className="whitespace-nowrap px-4 py-3 font-semibold">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {visiveis.map((l) => (
-              <tr
-                key={l.id}
-                onClick={() => setAberto(l)}
-                className="cursor-pointer border-t border-white/[0.07] align-top text-[13px] transition hover:bg-white/[0.04]"
-              >
-                <td className="px-4 py-3">
-                  <p className="font-semibold text-white">{l.nome}</p>
-                  {(l.utm_source || l.utm_campaign) && (
-                    <p className="mt-0.5 text-[11px] text-white/35">
-                      {[l.utm_source, l.utm_medium, l.utm_campaign].filter(Boolean).join(" · ")}
-                    </p>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <p className="text-white/80">{l.email}</p>
-                  <p className="mt-0.5 text-white/45">{telefoneVisivel(l.telefone)}</p>
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 tabular-nums text-white/60">{l.cpf}</td>
-                <td className="whitespace-nowrap px-4 py-3 text-white/60">
-                  {ORIGEM_ROTULO[l.origem] ?? l.origem}
-                </td>
-                <td className="px-4 py-3">
-                  <Selo status={l.email_status} />
-                  <p className="mt-1 whitespace-nowrap text-[11px] text-white/35">
-                    {dataHora(l.email_sent_at)}
-                  </p>
-                </td>
-                <td className="whitespace-nowrap px-4 py-3 text-white/50">
-                  {dataHora(l.created_at)}
-                </td>
+        <div className="overflow-x-auto rounded-2xl border border-white/10">
+          <table className="w-full min-w-[900px] border-collapse text-left">
+            <thead>
+              <tr className="bg-white/[0.04] text-[11px] uppercase tracking-[0.1em] text-white/40">
+                {["Pessoa", "Contato", "CPF", "Origem", "E-mail", "Cadastro"].map((h) => (
+                  <th key={h} className="whitespace-nowrap px-4 py-3 font-semibold">
+                    {h}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {visiveis.map((l) => (
+                <tr
+                  key={l.id}
+                  onClick={() => setAberto(l)}
+                  className="cursor-pointer border-t border-white/[0.07] align-top text-[13px] transition hover:bg-white/[0.04]"
+                >
+                  <td className="px-4 py-3">
+                    <p className="font-semibold text-white">{l.nome}</p>
+                    {(l.utm_source || l.utm_campaign) && (
+                      <p className="mt-0.5 text-[11px] text-white/35">
+                        {[l.utm_source, l.utm_medium, l.utm_campaign].filter(Boolean).join(" · ")}
+                      </p>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="text-white/80">{l.email}</p>
+                    <p className="mt-0.5 text-white/45">{telefoneVisivel(l.telefone)}</p>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 tabular-nums text-white/60">{l.cpf}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-white/60">
+                    {ORIGEM_ROTULO[l.origem] ?? l.origem}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Selo status={l.email_status} />
+                    <p className="mt-1 whitespace-nowrap text-[11px] text-white/35">
+                      {dataHora(l.email_sent_at)}
+                    </p>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-3 text-white/50">
+                    {dataHora(l.created_at)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {visiveis.length === 0 && (
-        <p className="rounded-2xl border border-white/10 px-4 py-10 text-center text-[14px] text-white/35">
+        <p className="mt-3 rounded-2xl border border-white/10 px-4 py-10 text-center text-[14px] text-white/35">
           {leads.length === 0
             ? "Nenhum cadastro na lista VIP ainda."
             : "Nenhum cadastro encontrado com esses filtros."}
         </p>
+      )}
+
+      {menu && (
+        <ActionSheet titulo="Lista VIP" acoes={acoesMobile} aoFechar={() => setMenu(false)} />
       )}
 
       {aberto && (
