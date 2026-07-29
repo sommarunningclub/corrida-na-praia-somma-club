@@ -13,6 +13,7 @@ import { Faq } from "@/components/faq";
 import { Inscricao } from "@/components/inscricao";
 import { Footer } from "@/components/footer";
 import { CtaBar } from "@/components/cta-bar";
+import { AgendaFlutuante } from "@/components/agenda-flutuante";
 
 export default function Page() {
   return (
@@ -34,6 +35,7 @@ export default function Page() {
       </main>
       <Footer />
       <CtaBar />
+      <AgendaFlutuante />
     </>
   );
 }

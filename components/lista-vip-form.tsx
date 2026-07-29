@@ -559,7 +559,10 @@ export function ListaVipForm() {
             type="checkbox"
             checked={aceite}
             onChange={(e) => setAceite(e.target.checked)}
-            className="mt-0.5 h-5 w-5 shrink-0 rounded border-white/20 bg-white/10 accent-[#FF2C03]"
+            /* color-scheme dark deixa a caixa desmarcada escura como os campos
+               em volta, em vez do branco padrão do navegador. Escopado no
+               elemento: no body afetaria barras de rolagem e as seções claras. */
+            className="mt-0.5 h-5 w-5 shrink-0 accent-[#FF2C03] [color-scheme:dark]"
           />
           <span className="text-[13px] leading-6 text-white/55">
             Autorizo o tratamento dos meus dados pessoais e o uso da minha imagem nas

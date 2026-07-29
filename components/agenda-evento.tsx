@@ -17,9 +17,13 @@ type Variante = "claro" | "escuro" | "compacto";
 export function AgendaEvento({
   variante = "claro",
   className = "",
+  emColuna = false,
 }: {
   variante?: Variante;
   className?: string;
+  /** Empilha os apps em uma coluna. Para espaços estreitos, como o painel
+   *  flutuante, onde três colunas espremem os rótulos em duas linhas. */
+  emColuna?: boolean;
 }) {
   if (variante === "compacto") return <Compacto className={className} />;
 
@@ -58,7 +62,7 @@ export function AgendaEvento({
         </div>
       </div>
 
-      <ul className="grid gap-2.5 sm:grid-cols-3">
+      <ul className={`grid gap-2.5 ${emColuna ? "" : "sm:grid-cols-3"}`}>
         {AGENDA.apps.map((app) => (
           <li key={app.key}>
             <a
@@ -138,7 +142,11 @@ function Compacto({ className = "" }: { className?: string }) {
   );
 }
 
-function IconeCalendario({ className = "h-[18px] w-[18px]" }: { className?: string }) {
+export function IconeCalendario({
+  className = "h-[18px] w-[18px]",
+}: {
+  className?: string;
+}) {
   return (
     <svg
       viewBox="0 0 24 24"

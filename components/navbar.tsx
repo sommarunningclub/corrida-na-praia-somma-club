@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { NAV } from "@/lib/napraia-data";
+import { EVENTO_MENU } from "@/lib/flutuantes";
 import { Wordmark } from "@/components/ui/wordmark";
 
 export function Navbar() {
@@ -36,6 +37,12 @@ export function Navbar() {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, []);
+
+  // Os flutuantes do rodapé precisam saber: o overlay do menu é z-30 e eles
+  // ficariam boiando por cima do escurecido.
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent(EVENTO_MENU, { detail: { aberto } }));
+  }, [aberto]);
 
   return (
     <>
