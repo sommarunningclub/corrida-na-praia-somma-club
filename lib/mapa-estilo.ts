@@ -21,6 +21,8 @@ export interface PaletaMapa {
   agua: string;
   /** Parques e áreas verdes. */
   verde: string;
+  /** Quadras de clubes e demais áreas de lazer, um verde mais lavado. */
+  verdeSuave: string;
   /** Corpo das vias comuns. */
   via: string;
   /** Contorno das vias comuns. */
@@ -44,6 +46,7 @@ export const PALETAS = {
     construido: "#F6E7CE",
     agua: "#1B3BB5",
     verde: "#CFE3B4",
+    verdeSuave: "#E2EFD2",
     via: "#FFFFFF",
     viaBorda: "#E7D3B1",
     viaPrincipal: "#FCAD00",
@@ -58,6 +61,7 @@ export const PALETAS = {
     construido: "#FBE6C8",
     agua: "#00A6C0",
     verde: "#8FD17A",
+    verdeSuave: "#C6E8B8",
     via: "#FFFFFF",
     viaBorda: "#F0D6AC",
     viaPrincipal: "#FCAD00",
@@ -72,6 +76,7 @@ export const PALETAS = {
     construido: "#F2E2E9",
     agua: "#5B21B6",
     verde: "#C4B5E8",
+    verdeSuave: "#E2DAF4",
     via: "#FFFFFF",
     viaBorda: "#E3D2E2",
     viaPrincipal: "#FCAD00",
@@ -100,11 +105,14 @@ export function estiloMapa(p: PaletaMapa): google.maps.MapTypeStyle[] {
     { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: p.textoHalo }] },
     { featureType: "water", elementType: "labels.text.stroke", stylers: [{ visibility: "off" }] },
 
+    // O trajeto corre pelo Setor de Clubes Esportivos: as quadras dos clubes
+    // são o que dá cor à área, então elas ficam visíveis e pintadas. Só os
+    // rótulos e ícones saem, senão o mapa vira uma lista de nomes.
+    { featureType: "poi", elementType: "geometry", stylers: [{ color: p.verdeSuave }] },
     { featureType: "poi.park", elementType: "geometry", stylers: [{ color: p.verde }] },
     { featureType: "poi.sports_complex", elementType: "geometry", stylers: [{ color: p.verde }] },
-    // Os pontos comerciais poluíam e disputavam com o trajeto.
-    { featureType: "poi.business", stylers: [{ visibility: "off" }] },
-    { featureType: "poi", elementType: "labels.text", stylers: [{ visibility: "off" }] },
+    { featureType: "landscape.natural.landcover", elementType: "geometry", stylers: [{ color: p.verde }] },
+    { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
     { featureType: "transit", stylers: [{ visibility: "off" }] },
 
     // Vias: corpo branco com contorno quente, para o traçado saltar do creme.

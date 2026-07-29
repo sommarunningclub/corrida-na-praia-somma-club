@@ -67,7 +67,7 @@ function montarMarcador3D(
   return marker;
 }
 
-export function Mapa({ paleta = "praia" }: { paleta?: NomePaleta }) {
+export function Mapa({ paleta = "festival" }: { paleta?: NomePaleta }) {
   const ref = useRef<HTMLDivElement>(null);
   const [erro, setErro] = useState(false);
 
