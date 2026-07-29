@@ -22,8 +22,11 @@ import {
   CHEGARAM,
   Campo,
   Folha,
+  GRUPO_CHEGARAM,
+  GRUPO_PROBLEMAS,
   PROBLEMAS,
   Selo,
+  combinaStatus,
   dataHora,
   telefoneVisivel,
 } from "@/app/admin/ui";
@@ -80,8 +83,7 @@ export function Inscritos({
   const visiveis = useMemo(() => {
     const termo = busca.trim().toLowerCase();
     return leads.filter((l) => {
-      if (filtroStatus !== "todos" && (l.email_status ?? "nao_enviado") !== filtroStatus)
-        return false;
+      if (!combinaStatus(filtroStatus, l.email_status)) return false;
       if (filtroOrigem !== "todos" && l.origem !== filtroOrigem) return false;
       if (!termo) return true;
       return [l.nome, l.email, l.telefone, l.cpf].some((c) =>
@@ -145,8 +147,17 @@ export function Inscritos({
       valor: entregues,
       parte: fatia(entregues),
       tom: "text-emerald-300",
+      aoClicar: () => setFiltroStatus(GRUPO_CHEGARAM),
+      ativo: filtroStatus === GRUPO_CHEGARAM,
     },
-    { rotulo: "Não chegaram", valor: problemas, tom: "text-red-300" },
+    {
+      rotulo: "Não chegaram",
+      valor: problemas,
+      parte: fatia(problemas),
+      tom: "text-red-300",
+      aoClicar: () => setFiltroStatus(GRUPO_PROBLEMAS),
+      ativo: filtroStatus === GRUPO_PROBLEMAS,
+    },
     {
       rotulo: "Formulário",
       valor: fechada ? "Fechado" : "Aberto",
@@ -298,6 +309,13 @@ export function Inscritos({
             className="h-12 flex-1 rounded-xl border border-white/12 bg-black/30 px-3 text-[16px] outline-none focus:border-primary/60 sm:flex-none sm:text-[14px]"
           >
             <option value="todos">Todos os status</option>
+            {/* Os mesmos grupos dos cartões, para o select refletir o clique. */}
+            <option value={GRUPO_CHEGARAM}>
+              Chegaram ({leads.filter((l) => CHEGARAM.includes(l.email_status ?? "")).length})
+            </option>
+            <option value={GRUPO_PROBLEMAS}>
+              Não chegaram ({leads.filter((l) => PROBLEMAS.includes(l.email_status ?? "")).length})
+            </option>
             {porStatus.map(([s, n]) => (
               <option key={s} value={s}>
                 {ROTULO_STATUS[s] ?? s} ({n})

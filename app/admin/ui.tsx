@@ -25,6 +25,26 @@ export const PROBLEMAS = ["bounced", "complained", "suppressed", "failed"];
 /** Chegaram — abertura e clique implicam entrega. */
 export const CHEGARAM = ["delivered", "opened", "clicked"];
 
+/**
+ * Os cartões do resumo agrupam vários eventos ("Não chegaram" são quatro
+ * status distintos), então o filtro aceita tanto um evento solto quanto um
+ * desses grupos.
+ */
+export const GRUPO_CHEGARAM = "grupo:chegaram";
+export const GRUPO_PROBLEMAS = "grupo:problemas";
+/** Quem abriu — um clique pressupõe a abertura, então entra aqui também. */
+export const GRUPO_ABERTOS = "grupo:abertos";
+export const ABERTOS = ["opened", "clicked"];
+
+export function combinaStatus(filtro: string, status: string | null): boolean {
+  const s = status ?? "nao_enviado";
+  if (filtro === "todos") return true;
+  if (filtro === GRUPO_CHEGARAM) return CHEGARAM.includes(s);
+  if (filtro === GRUPO_PROBLEMAS) return PROBLEMAS.includes(s);
+  if (filtro === GRUPO_ABERTOS) return ABERTOS.includes(s);
+  return s === filtro;
+}
+
 export function Selo({ status }: { status: string | null }) {
   const chave = status ?? "nao_enviado";
   const cor = CORES[chave] ?? "bg-white/8 text-white/45 border-white/15";

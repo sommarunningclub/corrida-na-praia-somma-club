@@ -3,7 +3,27 @@
 import { useMemo, useState, useTransition } from "react";
 import { verDisparo, type EstadoDisparo } from "@/app/admin/actions";
 import { ROTULO_STATUS, type LeadAdmin } from "@/lib/admin-tipos";
-import { CHEGARAM, Folha, PROBLEMAS, Selo, dataHora, telefoneVisivel } from "@/app/admin/ui";
+import {
+  ABERTOS,
+  CHEGARAM,
+  Folha,
+  GRUPO_ABERTOS,
+  GRUPO_CHEGARAM,
+  GRUPO_PROBLEMAS,
+  PROBLEMAS,
+  Selo,
+  combinaStatus,
+  dataHora,
+  telefoneVisivel,
+} from "@/app/admin/ui";
+
+/** Como o recorte atual é anunciado acima da lista. */
+const ROTULO_FILTRO: Record<string, string> = {
+  [GRUPO_CHEGARAM]: "que chegaram ao destinatário",
+  [GRUPO_ABERTOS]: "que foram abertos",
+  [GRUPO_PROBLEMAS]: "que não chegaram",
+  clicked: "com clique no e-mail",
+};
 
 /** Ordem de leitura do funil, do disparo ao clique. */
 const FUNIL = [
@@ -21,6 +41,7 @@ const FUNIL = [
 
 export function Disparos({ leads }: { leads: LeadAdmin[] }) {
   const [busca, setBusca] = useState("");
+  const [filtro, setFiltro] = useState("todos");
   const [aberto, setAberto] = useState<LeadAdmin | null>(null);
 
   const comDisparo = useMemo(() => leads.filter((l) => l.resend_email_id), [leads]);
@@ -47,25 +68,73 @@ export function Disparos({ leads }: { leads: LeadAdmin[] }) {
 
   const visiveis = useMemo(() => {
     const t = busca.trim().toLowerCase();
-    if (!t) return comDisparo;
-    return comDisparo.filter((l) =>
-      [l.nome, l.email, l.resend_email_id].some((c) => (c ?? "").toLowerCase().includes(t))
-    );
-  }, [comDisparo, busca]);
+    return comDisparo.filter((l) => {
+      if (!combinaStatus(filtro, l.email_status)) return false;
+      if (!t) return true;
+      return [l.nome, l.email, l.resend_email_id].some((c) =>
+        (c ?? "").toLowerCase().includes(t)
+      );
+    });
+  }, [comDisparo, busca, filtro]);
 
   const taxas = [
-    { rotulo: "Disparados", valor: comDisparo.length, parte: `${semDisparo} sem envio`, tom: "text-white" },
-    { rotulo: "Entregues", valor: entregues, parte: pct(entregues, comDisparo.length), tom: "text-emerald-300" },
-    { rotulo: "Abertos", valor: abertos, parte: `${pct(abertos, entregues)} dos entregues`, tom: "text-teal-300" },
-    { rotulo: "Cliques", valor: cliques, parte: `${pct(cliques, abertos)} dos abertos`, tom: "text-cyan-300" },
-    { rotulo: "Não chegaram", valor: falhas, parte: pct(falhas, comDisparo.length), tom: "text-red-300" },
+    {
+      rotulo: "Disparados",
+      valor: comDisparo.length,
+      parte: `${semDisparo} sem envio`,
+      tom: "text-white",
+      aoClicar: () => {
+        setFiltro("todos");
+        setBusca("");
+      },
+      ativo: filtro === "todos" && !busca,
+    },
+    {
+      rotulo: "Entregues",
+      valor: entregues,
+      parte: pct(entregues, comDisparo.length),
+      tom: "text-emerald-300",
+      aoClicar: () => setFiltro(GRUPO_CHEGARAM),
+      ativo: filtro === GRUPO_CHEGARAM,
+    },
+    {
+      rotulo: "Abertos",
+      valor: abertos,
+      parte: `${pct(abertos, entregues)} dos entregues`,
+      tom: "text-teal-300",
+      aoClicar: () => setFiltro(GRUPO_ABERTOS),
+      ativo: filtro === GRUPO_ABERTOS,
+    },
+    {
+      rotulo: "Cliques",
+      valor: cliques,
+      parte: `${pct(cliques, abertos)} dos abertos`,
+      tom: "text-cyan-300",
+      aoClicar: () => setFiltro("clicked"),
+      ativo: filtro === "clicked",
+    },
+    {
+      rotulo: "Não chegaram",
+      valor: falhas,
+      parte: pct(falhas, comDisparo.length),
+      tom: "text-red-300",
+      aoClicar: () => setFiltro(GRUPO_PROBLEMAS),
+      ativo: filtro === GRUPO_PROBLEMAS,
+    },
   ];
 
   return (
     <>
       <div className="mb-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5 lg:gap-3">
         {taxas.map((t) => (
-          <div key={t.rotulo} className="rounded-2xl border border-white/10 bg-white/[0.03] p-3.5 lg:p-4">
+          <button
+            key={t.rotulo}
+            type="button"
+            onClick={t.aoClicar}
+            className={`rounded-2xl border p-3.5 text-left transition active:scale-[0.98] hover:border-white/25 hover:bg-white/[0.06] lg:p-4 ${
+              t.ativo ? "border-white/30 bg-white/[0.08]" : "border-white/10 bg-white/[0.03]"
+            }`}
+          >
             <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-white/40 lg:text-[11px]">
               {t.rotulo}
             </p>
@@ -73,7 +142,7 @@ export function Disparos({ leads }: { leads: LeadAdmin[] }) {
               {t.valor}
             </p>
             <p className="mt-1 text-[11px] font-medium text-white/30">{t.parte}</p>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -87,7 +156,14 @@ export function Disparos({ leads }: { leads: LeadAdmin[] }) {
             const n = contagem.get(evento) ?? 0;
             const largura = comDisparo.length ? (n / comDisparo.length) * 100 : 0;
             return (
-              <div key={evento} className="flex items-center gap-3">
+              <button
+                key={evento}
+                type="button"
+                onClick={() => setFiltro(evento)}
+                className={`flex w-full items-center gap-3 rounded-lg px-1.5 py-1 text-left transition hover:bg-white/[0.05] ${
+                  filtro === evento ? "bg-white/[0.08]" : ""
+                }`}
+              >
                 <span className="w-[92px] shrink-0 text-[12px] text-white/55">
                   {ROTULO_STATUS[evento] ?? evento}
                 </span>
@@ -102,7 +178,7 @@ export function Disparos({ leads }: { leads: LeadAdmin[] }) {
                 <span className="w-[68px] shrink-0 text-right text-[12px] tabular-nums text-white/45">
                   {n} · {pct(n, comDisparo.length)}
                 </span>
-              </div>
+              </button>
             );
           })}
           {contagem.size === 0 && (
@@ -117,8 +193,31 @@ export function Disparos({ leads }: { leads: LeadAdmin[] }) {
         value={busca}
         onChange={(e) => setBusca(e.target.value)}
         placeholder="Buscar disparo por pessoa, e-mail ou ID do Resend"
-        className="mb-4 h-12 w-full rounded-xl border border-white/12 bg-black/30 px-4 text-[16px] outline-none transition placeholder:text-white/25 focus:border-primary/60"
+        className="mb-3 h-12 w-full rounded-xl border border-white/12 bg-black/30 px-4 text-[16px] outline-none transition placeholder:text-white/25 focus:border-primary/60"
       />
+
+      {/* Deixa explícito o recorte em que a lista está, com saída fácil. */}
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <p className="text-[13px] text-white/45">
+          {filtro === "todos" ? (
+            <>Mostrando os {visiveis.length} disparos</>
+          ) : (
+            <>
+              <span className="font-semibold text-white/75">{visiveis.length}</span>{" "}
+              {ROTULO_FILTRO[filtro] ?? "filtrados"}
+            </>
+          )}
+        </p>
+        {filtro !== "todos" && (
+          <button
+            type="button"
+            onClick={() => setFiltro("todos")}
+            className="shrink-0 rounded-full border border-white/12 px-3 py-1.5 text-[12px] font-semibold text-white/60 transition hover:border-white/25 hover:text-white"
+          >
+            Limpar filtro
+          </button>
+        )}
+      </div>
 
       <ul className="space-y-2">
         {visiveis.map((l) => (
@@ -147,7 +246,9 @@ export function Disparos({ leads }: { leads: LeadAdmin[] }) {
         <p className="rounded-2xl border border-white/10 px-4 py-10 text-center text-[14px] text-white/35">
           {comDisparo.length === 0
             ? "Nenhum e-mail foi disparado ainda."
-            : "Nenhum disparo encontrado com essa busca."}
+            : filtro === GRUPO_PROBLEMAS
+              ? "Nenhum disparo falhou — todos chegaram."
+              : "Nenhum disparo encontrado com esse recorte."}
         </p>
       )}
 
