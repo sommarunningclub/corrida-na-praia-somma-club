@@ -56,8 +56,12 @@
     font-size: 16px;
   }
 
-  /* Aparência nativa fora — o estilo é nosso. */
-  input,
+  /* Aparência nativa fora — o estilo é nosso.
+     Checkbox e radio ficam de fora de propósito: eles não têm estilo próprio
+     aqui e dependem do accent-color para mostrar que estão marcados. Com
+     appearance:none eles continuam alternando, mas ficam idênticos marcados e
+     desmarcados, e a pessoa lê isso como "não deixa selecionar". */
+  input:not([type="checkbox"]):not([type="radio"]),
   textarea,
   select,
   button {
