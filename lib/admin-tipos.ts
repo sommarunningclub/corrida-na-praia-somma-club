@@ -36,7 +36,11 @@ export const ROTULO_STATUS: Record<string, string> = {
   nao_enviado: "Não enviado",
 };
 
+/** Valores gravados em `origem` pelas duas pontas do formulário. */
+export const ORIGEM_MEMBRO = "site-napraia-membro";
+export const ORIGEM_NOVO = "site-napraia-novo";
+
 export const ORIGEM_ROTULO: Record<string, string> = {
-  "site-napraia-membro": "Já era membro",
-  "site-napraia-novo": "Novo membro",
+  [ORIGEM_MEMBRO]: "Já era membro",
+  [ORIGEM_NOVO]: "Novo membro",
 };

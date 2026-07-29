@@ -8,7 +8,13 @@ import {
   sincronizarEmails,
   type EstadoAcao,
 } from "@/app/admin/actions";
-import { ORIGEM_ROTULO, ROTULO_STATUS, type LeadAdmin } from "@/lib/admin-tipos";
+import {
+  ORIGEM_MEMBRO,
+  ORIGEM_NOVO,
+  ORIGEM_ROTULO,
+  ROTULO_STATUS,
+  type LeadAdmin,
+} from "@/lib/admin-tipos";
 
 /* ─── Aparência dos status ────────────────────────────────────────────────── */
 
@@ -135,6 +141,13 @@ export function Painel({
   const entregues = leads.filter((l) => CHEGARAM.includes(l.email_status ?? "")).length;
   const problemas = leads.filter((l) => PROBLEMAS.includes(l.email_status ?? "")).length;
 
+  // Quem já era da comunidade Somma x quem entrou no clube por causa da corrida.
+  const jaMembros = leads.filter((l) => l.origem === ORIGEM_MEMBRO).length;
+  const novosMembros = leads.filter((l) => l.origem === ORIGEM_NOVO).length;
+
+  const fatia = (n: number) =>
+    leads.length ? `${Math.round((n / leads.length) * 100)}% do total` : "";
+
   return (
     <main className="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
       {/* Cabeçalho */}
@@ -160,27 +173,74 @@ export function Painel({
         </p>
       )}
 
-      {/* Números */}
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {/* Números. Os de origem e entrega filtram a tabela ao clicar. */}
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {[
-          { rotulo: "Cadastros", valor: leads.length, tom: "text-white" },
-          { rotulo: "E-mails entregues", valor: entregues, tom: "text-emerald-300" },
+          {
+            rotulo: "Cadastros",
+            valor: leads.length,
+            tom: "text-white",
+            aoClicar: () => {
+              setFiltroOrigem("todos");
+              setFiltroStatus("todos");
+              setBusca("");
+            },
+            ativo: filtroOrigem === "todos" && filtroStatus === "todos" && !busca,
+          },
+          {
+            rotulo: "Já eram membros",
+            valor: jaMembros,
+            parte: fatia(jaMembros),
+            tom: "text-sky-300",
+            aoClicar: () => setFiltroOrigem(ORIGEM_MEMBRO),
+            ativo: filtroOrigem === ORIGEM_MEMBRO,
+          },
+          {
+            rotulo: "Novos membros",
+            valor: novosMembros,
+            parte: fatia(novosMembros),
+            tom: "text-violet-300",
+            aoClicar: () => setFiltroOrigem(ORIGEM_NOVO),
+            ativo: filtroOrigem === ORIGEM_NOVO,
+          },
+          {
+            rotulo: "E-mails entregues",
+            valor: entregues,
+            parte: fatia(entregues),
+            tom: "text-emerald-300",
+          },
           { rotulo: "Não chegaram", valor: problemas, tom: "text-red-300" },
           {
             rotulo: "Formulário",
             valor: fechada ? "Fechado" : "Aberto",
             tom: fechada ? "text-amber-300" : "text-emerald-300",
           },
-        ].map((c) => (
-          <div key={c.rotulo} className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">
-              {c.rotulo}
-            </p>
-            <p className={`mt-1.5 text-[26px] font-bold leading-none tracking-tight ${c.tom}`}>
-              {c.valor}
-            </p>
-          </div>
-        ))}
+        ].map((c) => {
+          const Tag = c.aoClicar ? "button" : "div";
+          return (
+            <Tag
+              key={c.rotulo}
+              {...(c.aoClicar ? { type: "button" as const, onClick: c.aoClicar } : {})}
+              className={`rounded-2xl border p-4 text-left transition ${
+                c.ativo
+                  ? "border-white/30 bg-white/[0.08]"
+                  : "border-white/10 bg-white/[0.03]"
+              } ${c.aoClicar ? "hover:border-white/25 hover:bg-white/[0.06]" : ""}`}
+            >
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                {c.rotulo}
+              </p>
+              <p
+                className={`mt-1.5 text-[26px] font-bold leading-none tracking-tight ${c.tom}`}
+              >
+                {c.valor}
+              </p>
+              {c.parte && (
+                <p className="mt-1 text-[11px] font-medium text-white/30">{c.parte}</p>
+              )}
+            </Tag>
+          );
+        })}
       </div>
 
       {/* Ações */}
