@@ -1,4 +1,4 @@
-import { estaAutenticado } from "@/lib/admin-auth";
+import { papelAtual } from "@/lib/admin-auth";
 import { listarLeads } from "@/lib/admin-store";
 import { listaVipFechada } from "@/lib/config-store";
 import { LoginAdmin } from "@/app/admin/login-admin";
@@ -8,9 +8,8 @@ import { Painel } from "@/app/admin/painel";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  if (!(await estaAutenticado())) {
-    return <LoginAdmin />;
-  }
+  const papel = await papelAtual();
+  if (!papel) return <LoginAdmin />;
 
   // Um erro de banco aqui não pode virar tela branca: o painel mostra o motivo.
   let leads = null;
@@ -22,6 +21,11 @@ export default async function AdminPage() {
   }
 
   return (
-    <Painel leads={leads ?? []} fechada={await listaVipFechada()} erroCarga={erro} />
+    <Painel
+      leads={leads ?? []}
+      fechada={await listaVipFechada()}
+      erroCarga={erro}
+      papel={papel}
+    />
   );
 }

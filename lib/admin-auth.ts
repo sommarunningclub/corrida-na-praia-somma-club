@@ -3,32 +3,43 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 
 /**
- * Porta de entrada do /admin: um código de acesso único, compartilhado pela
- * equipe. Não é um sistema de usuários — é um cadeado para um painel interno
- * que lida com dados pessoais de 78 leads.
+ * Porta de entrada do /admin. Dois códigos, dois papéis:
  *
- * O código nunca vira o cookie. O que fica no navegador é um token HMAC com
- * prazo, então roubar o cookie não revela o código nem vale para sempre.
+ *   editor  — mexe em tudo (ADMIN_ACCESS_CODE)
+ *   leitor  — só consulta; nada de criar, editar, excluir ou exportar
+ *             (ADMIN_VIEW_CODE)
+ *
+ * Não é um sistema de usuários: é um cadeado de equipe para um painel com
+ * dados pessoais. O código nunca vira o cookie — o que fica no navegador é um
+ * HMAC com prazo, e o papel vai assinado dentro dele, então não dá para virar
+ * editor mexendo no cookie.
  */
 
 export const ADMIN_COOKIE = "napraia_admin";
 
+export type Papel = "editor" | "leitor";
+
 const VALIDADE_MS = 12 * 60 * 60 * 1000; // 12h — uma jornada de trabalho
 
 /**
- * O código combinado vive só no ambiente. Este repositório é público: um
- * valor padrão aqui dentro seria a senha do painel exposta no GitHub.
- * Sem a variável, ninguém entra — falha fechado, nunca aberto.
+ * Os códigos vivem só no ambiente. Este repositório é público: um valor
+ * padrão aqui dentro seria a senha do painel exposta no GitHub. Sem a
+ * variável, ninguém entra — falha fechado, nunca aberto.
  */
-function codigoEsperado(): string | null {
-  const codigo = process.env.ADMIN_ACCESS_CODE;
-  if (!codigo) {
-    console.error(
-      "[admin] ADMIN_ACCESS_CODE não configurada — o painel fica inacessível até definir a variável."
-    );
-    return null;
+function codigos(): Array<{ papel: Papel; codigo: string }> {
+  const lista: Array<{ papel: Papel; codigo: string }> = [];
+  if (process.env.ADMIN_ACCESS_CODE) {
+    lista.push({ papel: "editor", codigo: process.env.ADMIN_ACCESS_CODE });
   }
-  return codigo;
+  if (process.env.ADMIN_VIEW_CODE) {
+    lista.push({ papel: "leitor", codigo: process.env.ADMIN_VIEW_CODE });
+  }
+  if (lista.length === 0) {
+    console.error(
+      "[admin] Nenhum código configurado (ADMIN_ACCESS_CODE / ADMIN_VIEW_CODE) — o painel fica inacessível."
+    );
+  }
+  return lista;
 }
 
 /** Sem literal de reserva: um segredo conhecido permitiria forjar o cookie. */
@@ -53,52 +64,76 @@ function iguais(a: string, b: string): boolean {
   return timingSafeEqual(bufA, bufB);
 }
 
-export function codigoConfere(informado: string): boolean {
-  const esperado = codigoEsperado();
-  if (!esperado) return false;
-  return iguais(informado.trim(), esperado);
+/** Devolve o papel do código informado, ou null se não bater com nenhum. */
+export function papelDoCodigo(informado: string): Papel | null {
+  const limpo = informado.trim();
+  // Percorre a lista inteira de propósito: sair no primeiro acerto vazaria,
+  // pelo tempo de resposta, qual dos códigos foi digitado.
+  let achado: Papel | null = null;
+  for (const { papel, codigo } of codigos()) {
+    if (iguais(limpo, codigo)) achado = papel;
+  }
+  return achado;
 }
 
-export function criarSessao(): string {
-  const payload = `admin.${Date.now()}`;
+export function criarSessao(papel: Papel): string {
+  const payload = `admin.${papel}.${Date.now()}`;
   return `${Buffer.from(payload).toString("base64url")}.${assinar(payload)}`;
 }
 
-export function sessaoValida(token: string | undefined): boolean {
-  if (!token) return false;
+/** Papel válido carregado no token, ou null se ausente, adulterado ou vencido. */
+export function papelDaSessao(token: string | undefined): Papel | null {
+  if (!token) return null;
   // Sem código configurado o painel está desligado: nem cookie antigo entra.
-  if (!codigoEsperado()) return false;
+  if (codigos().length === 0) return null;
 
   const partes = token.split(".");
-  if (partes.length !== 2) return false;
+  if (partes.length !== 2) return null;
 
   const [corpo, assinatura] = partes;
   let payload: string;
   try {
     payload = Buffer.from(corpo, "base64url").toString("utf8");
   } catch {
-    return false;
+    return null;
   }
 
-  if (!iguais(assinatura, assinar(payload))) return false;
+  if (!iguais(assinatura, assinar(payload))) return null;
 
-  const [marca, emitidoEm] = payload.split(".");
-  if (marca !== "admin" || !emitidoEm) return false;
+  const [marca, papel, emitidoEm] = payload.split(".");
+  if (marca !== "admin" || !emitidoEm) return null;
+  if (papel !== "editor" && papel !== "leitor") return null;
+  if (Date.now() - Number(emitidoEm) > VALIDADE_MS) return null;
 
-  return Date.now() - Number(emitidoEm) <= VALIDADE_MS;
+  // Um código revogado no ambiente derruba o papel correspondente na hora.
+  if (!codigos().some((c) => c.papel === papel)) return null;
+
+  return papel;
 }
 
 /** Lê o cookie da requisição atual. Use em Server Components e Server Actions. */
-export async function estaAutenticado(): Promise<boolean> {
+export async function papelAtual(): Promise<Papel | null> {
   const jar = await cookies();
-  return sessaoValida(jar.get(ADMIN_COOKIE)?.value);
+  return papelDaSessao(jar.get(ADMIN_COOKIE)?.value);
 }
 
-/** Barreira para as ações: qualquer mutação passa por aqui antes de tocar o banco. */
-export async function exigirAdmin(): Promise<void> {
-  if (!(await estaAutenticado())) {
-    throw new Error("Sessão expirada. Entre novamente no painel.");
-  }
+/** Barreira das ações de escrita. Só o editor passa — o leitor é barrado aqui,
+ *  no servidor, e não só pela ausência do botão na tela. */
+export async function exigirEditor(): Promise<void> {
+  const papel = await papelAtual();
+  if (papel === "editor") return;
+  throw new Error(
+    papel === "leitor"
+      ? "Seu acesso é somente leitura. Entre com o código de edição para alterar dados."
+      : "Sessão expirada. Entre novamente no painel."
+  );
+}
+
+/** Barreira das ações de leitura: qualquer papel válido serve. */
+export async function exigirSessao(): Promise<Papel> {
+  const papel = await papelAtual();
+  if (!papel) throw new Error("Sessão expirada. Entre novamente no painel.");
+  return papel;
 }
 
 export const COOKIE_OPTS = {

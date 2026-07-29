@@ -1,7 +1,7 @@
 import "server-only";
 import { Resend } from "resend";
 import { getServiceSupabase, LISTA_VIP_TABLE } from "@/lib/supabase";
-import type { LeadAdmin } from "@/lib/admin-tipos";
+import { ORIGEM_PAINEL, type LeadAdmin } from "@/lib/admin-tipos";
 
 const CAMPOS =
   "id, nome, email, telefone, cpf, origem, utm_source, utm_medium, utm_campaign, resend_email_id, email_status, email_sent_at, created_at";
@@ -54,6 +54,37 @@ export async function atualizarLead(
   }
 }
 
+/* ─── Cadastro manual e exclusão ──────────────────────────────────────────── */
+
+/** Inscrito criado pela equipe, não pelo formulário do site. */
+export async function criarLead(campos: CamposEditaveis): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Supabase indisponível.");
+
+  const { error } = await supabase.from(LISTA_VIP_TABLE).insert({
+    nome: campos.nome.trim(),
+    email: campos.email.trim().toLowerCase(),
+    telefone: campos.telefone.trim(),
+    cpf: campos.cpf.trim(),
+    origem: ORIGEM_PAINEL,
+  });
+
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error("Esse e-mail ou CPF já está na lista VIP.");
+    }
+    throw new Error(`Não foi possível cadastrar: ${error.message}`);
+  }
+}
+
+export async function excluirLead(id: string): Promise<void> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Supabase indisponível.");
+
+  const { error } = await supabase.from(LISTA_VIP_TABLE).delete().eq("id", id);
+  if (error) throw new Error(`Não foi possível excluir: ${error.message}`);
+}
+
 /* ─── Status de entrega no Resend ─────────────────────────────────────────── */
 
 export type ResultadoSync = {
@@ -67,8 +98,8 @@ export type ResultadoSync = {
  * Pergunta ao Resend o último evento de cada e-mail e grava em `email_status`.
  *
  * O Resend limita a 2 requisições por segundo, então isto vai em duplas com
- * respiro entre elas: uma sincronização completa da lista leva ~20s. É uma
- * ação manual justamente por isso.
+ * respiro entre elas: com ~200 inscritos a volta inteira passa de um minuto.
+ * É uma ação manual justamente por isso.
  */
 export async function sincronizarStatusEmails(): Promise<ResultadoSync> {
   const supabase = getServiceSupabase();
@@ -133,4 +164,52 @@ export async function sincronizarStatusEmails(): Promise<ResultadoSync> {
   }
 
   return resultado;
+}
+
+/* ─── Consulta de um disparo ──────────────────────────────────────────────── */
+
+export type DetalheDisparo = {
+  id: string;
+  para: string;
+  assunto: string | null;
+  ultimoEvento: string;
+  criadoEm: string | null;
+  de: string | null;
+};
+
+/**
+ * Ficha completa de um e-mail direto no Resend — o que a tabela não guarda:
+ * assunto, remetente e horário do disparo. Usado na consulta individual da
+ * aba de disparos, uma requisição por vez.
+ */
+export async function consultarDisparo(
+  resendEmailId: string
+): Promise<DetalheDisparo> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) throw new Error("RESEND_API_KEY não está configurada no ambiente.");
+
+  const resend = new Resend(apiKey);
+  const { data, error } = await resend.emails.get(resendEmailId);
+
+  if (error || !data) {
+    throw new Error(error?.message ?? "O Resend não encontrou esse disparo.");
+  }
+
+  const e = data as {
+    id: string;
+    to?: string[] | string;
+    subject?: string;
+    last_event?: string;
+    created_at?: string;
+    from?: string;
+  };
+
+  return {
+    id: e.id,
+    para: Array.isArray(e.to) ? e.to.join(", ") : (e.to ?? ""),
+    assunto: e.subject ?? null,
+    ultimoEvento: e.last_event ?? "sent",
+    criadoEm: e.created_at ?? null,
+    de: e.from ?? null,
+  };
 }

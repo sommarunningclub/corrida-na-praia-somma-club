@@ -39,8 +39,11 @@ export const ROTULO_STATUS: Record<string, string> = {
 /** Valores gravados em `origem` pelas duas pontas do formulário. */
 export const ORIGEM_MEMBRO = "site-napraia-membro";
 export const ORIGEM_NOVO = "site-napraia-novo";
+/** Quem a equipe cadastrou à mão pelo painel. */
+export const ORIGEM_PAINEL = "admin-painel";
 
 export const ORIGEM_ROTULO: Record<string, string> = {
   [ORIGEM_MEMBRO]: "Já era membro",
   [ORIGEM_NOVO]: "Novo membro",
+  [ORIGEM_PAINEL]: "Cadastro manual",
 };

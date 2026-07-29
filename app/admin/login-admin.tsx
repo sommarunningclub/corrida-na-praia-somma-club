@@ -7,7 +7,7 @@ export function LoginAdmin() {
   const [estado, acao, pendente] = useActionState<EstadoAcao, FormData>(entrar, null);
 
   return (
-    <main className="grid min-h-dvh place-items-center px-5 py-16">
+    <main className="grid min-h-dvh place-items-center px-5 py-[max(4rem,env(safe-area-inset-top))]">
       <div className="w-full max-w-[380px]">
         <div className="mb-8 text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
@@ -35,7 +35,8 @@ export function LoginAdmin() {
             autoComplete="current-password"
             autoFocus
             required
-            className="h-[52px] w-full rounded-xl border border-white/12 bg-black/30 px-4 text-[15px] text-white outline-none transition placeholder:text-white/25 focus:border-primary/60"
+            // 16px evita o zoom automático do iOS ao focar o campo.
+            className="h-[52px] w-full rounded-xl border border-white/12 bg-black/30 px-4 text-[16px] text-white outline-none transition placeholder:text-white/25 focus:border-primary/60"
             placeholder="••••••••••"
           />
 
