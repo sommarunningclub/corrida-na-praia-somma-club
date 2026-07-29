@@ -179,11 +179,12 @@ export const LISTA_VIP = {
     "As vagas da Corrida na Praia são limitadas e a comunidade Somma Club compra primeiro. Entre na lista VIP para receber o aviso de abertura antes do público geral.",
   prazoTitulo: "As inscrições na lista VIP terminam em",
   prazoEncerrado: "As inscrições na lista VIP foram encerradas.",
-  // Sem promessa de e-mail: o disparo automático está desligado.
-  // O aviso sai pelo WhatsApp, com o telefone informado no cadastro.
+  // O e-mail de confirmação volta a sair no ato do cadastro
+  // (VIP_EMAIL_ENABLED). O aviso de abertura das vendas sai pelos dois
+  // canais, com o telefone e o e-mail informados aqui.
   vantagens: [
     "Acesso antecipado à abertura das vendas",
-    "Aviso pelo WhatsApp antes da venda geral",
+    "Aviso por e-mail e WhatsApp antes da venda geral",
     "Concorre a um ingresso para o show",
   ],
   destaques: [

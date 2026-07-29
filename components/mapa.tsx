@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
 import { EVENTO } from "@/lib/napraia-data";
+import { estiloMapa, PALETAS, type NomePaleta } from "@/lib/mapa-estilo";
 
 type OverlayCtor = typeof google.maps.OverlayView;
 
@@ -66,7 +67,7 @@ function montarMarcador3D(
   return marker;
 }
 
-export function Mapa() {
+export function Mapa({ paleta = "praia" }: { paleta?: NomePaleta }) {
   const ref = useRef<HTMLDivElement>(null);
   const [erro, setErro] = useState(false);
 
@@ -94,8 +95,11 @@ export function Mapa() {
 
         const map = new Map(ref.current, {
           center: { lat, lng },
-          zoom: 16,
-          mapTypeId: "hybrid", // satélite + rótulos
+          zoom: 15,
+          // Mapa de ruas: o texto da seção cita as vias do trajeto, e no
+          // satélite não dava para seguir nenhuma delas.
+          mapTypeId: "roadmap",
+          styles: estiloMapa(PALETAS[paleta]),
           disableDefaultUI: true,
           zoomControl: true,
           mapTypeControl: false,
@@ -104,9 +108,6 @@ export function Mapa() {
           gestureHandling: "cooperative",
           clickableIcons: false,
           keyboardShortcuts: false,
-          // Leve inclinação onde o Google Maps WebGL permitir.
-          tilt: 45,
-          heading: 20,
         });
 
         overlay = montarMarcador3D(OverlayView, LatLng, map, { lat, lng });
@@ -120,7 +121,7 @@ export function Mapa() {
       cancelado = true;
       overlay?.setMap(null);
     };
-  }, []);
+  }, [paleta]);
 
   if (erro) {
     return (
@@ -142,8 +143,10 @@ export function Mapa() {
     <div
       ref={ref}
       role="application"
-      aria-label={`Mapa satélite com o ponto de largada em ${EVENTO.local.nome}`}
-      className="h-full min-h-[280px] w-full rounded-card bg-[#1a2a1a]"
+      aria-label={`Mapa das vias do percurso, com o ponto de largada em ${EVENTO.local.nome}`}
+      // Fundo igual ao terreno do estilo: sem flash escuro antes de carregar.
+      className="h-full min-h-[280px] w-full rounded-card"
+      style={{ backgroundColor: PALETAS[paleta].terra }}
     />
   );
 }

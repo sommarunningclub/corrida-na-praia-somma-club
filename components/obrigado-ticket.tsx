@@ -81,8 +81,8 @@ export function ObrigadoTicket() {
           Boa, {firstName(dados.nome)}! Você está na lista VIP.
         </h1>
         <p className="mx-auto max-w-[42ch] text-[15px] leading-7 text-white/55">
-          Guarde este comprovante. Você será avisado assim que as vendas abrirem,
-          antes do público geral.
+          Enviamos a confirmação para o seu e-mail. Guarde este comprovante:
+          você será avisado assim que as vendas abrirem, antes do público geral.
         </p>
       </div>
 
@@ -202,7 +202,7 @@ export function ObrigadoTicket() {
 
       <p className="mx-auto mt-6 max-w-[44ch] px-2 text-center text-[13px] leading-6 text-white/40">
         As vagas são limitadas e o cadastro não garante o ingresso. Avisaremos você
-        pelo WhatsApp assim que as vendas abrirem.
+        por e-mail e WhatsApp assim que as vendas abrirem.
       </p>
 
       {/* Boas-vindas de quem acabou de entrar na comunidade */}
