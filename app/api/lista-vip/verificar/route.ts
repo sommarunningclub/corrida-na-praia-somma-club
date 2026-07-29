@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServiceSupabase, LISTA_VIP_TABLE } from "@/lib/supabase";
 import { onlyDigits } from "@/lib/validation";
+import { listaVipFechada, MSG_FECHADA } from "@/lib/config-store";
 import {
   CPF_TABELA_MEMBROS,
   criarTokenMembro,
@@ -23,6 +24,10 @@ export const dynamic = "force-dynamic";
  * é a rota /confirmar, que relê o cadastro a partir do token assinado.
  */
 export async function POST(request: Request) {
+  if (await listaVipFechada()) {
+    return NextResponse.json({ error: MSG_FECHADA, fechada: true }, { status: 403 });
+  }
+
   if (excedeuTentativas(ipDaRequisicao(request))) {
     return NextResponse.json(
       { error: "Muitas tentativas seguidas. Aguarde alguns minutos." },

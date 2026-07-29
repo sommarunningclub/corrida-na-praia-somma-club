@@ -4,6 +4,7 @@ import { CPF_TABELA_MEMBROS, formatarCpf, formatosDeCpf } from "@/lib/membro";
 import { gravarLead, lerUtms } from "@/lib/lista-vip-store";
 import { brDateToISO, novoMembroSchema, onlyDigits } from "@/lib/validation";
 import { maskPhone } from "@/lib/validation";
+import { listaVipFechada, MSG_FECHADA } from "@/lib/config-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,6 +14,12 @@ export const dynamic = "force-dynamic";
  * (cadastro_site) e entra na lista VIP na mesma ação.
  */
 export async function POST(request: Request) {
+  // O fechamento vale no servidor, não só na tela: esconder o formulário não
+  // impediria um POST direto no endpoint.
+  if (await listaVipFechada()) {
+    return NextResponse.json({ error: MSG_FECHADA, fechada: true }, { status: 403 });
+  }
+
   let payload: unknown;
   try {
     payload = await request.json();

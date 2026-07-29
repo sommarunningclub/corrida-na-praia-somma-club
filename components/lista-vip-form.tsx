@@ -64,7 +64,7 @@ function validarCampo(campo: CampoCadastro, valor: string): string | undefined {
  * 2a. Membro: confirma os dados (mostrados parcialmente) e entra na lista.
  * 2b. Novo: faz o cadastro de membro do clube e entra na lista na mesma ação.
  */
-export function ListaVipForm() {
+export function ListaVipForm({ fechada = false }: { fechada?: boolean }) {
   const [etapa, setEtapa] = useState<Etapa>("cpf");
   const [cpf, setCpf] = useState("");
   const [token, setToken] = useState("");
@@ -295,15 +295,17 @@ export function ListaVipForm() {
 
   const moldura = "rounded-panel border border-white/10 bg-dark-card p-6 sm:p-8 lg:p-10";
 
-  if (encerrado) {
+  // `fechada` vem do /admin e vale na hora; `encerrado` é o prazo do relógio.
+  if (fechada || encerrado) {
     return (
       <div className={`${moldura} text-center`}>
         <h3 className="mb-3 text-[22px] font-bold leading-tight text-white sm:text-[26px]">
           As inscrições na lista VIP foram encerradas
         </h3>
         <p className="mb-6 text-[15px] leading-7 text-white/60">
-          O prazo terminou em 1º de agosto. Acompanhe o Instagram do Somma Club para
-          saber da abertura das vendas para o público geral.
+          {fechada
+            ? "O cadastro está fechado no momento. Acompanhe o Instagram do Somma Club para saber da abertura das vendas."
+            : "O prazo terminou em 1º de agosto. Acompanhe o Instagram do Somma Club para saber da abertura das vendas para o público geral."}
         </p>
         <a
           href={SOMMA.links.instagram}

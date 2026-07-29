@@ -3,6 +3,7 @@ import { getServiceSupabase } from "@/lib/supabase";
 import { CPF_TABELA_MEMBROS, formatosDeCpf, lerTokenMembro } from "@/lib/membro";
 import { gravarLead, lerUtms } from "@/lib/lista-vip-store";
 import { onlyDigits } from "@/lib/validation";
+import { listaVipFechada, MSG_FECHADA } from "@/lib/config-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +16,10 @@ export const dynamic = "force-dynamic";
  * navegador nunca precisou receber (nem devolver) nome, e-mail ou telefone.
  */
 export async function POST(request: Request) {
+  if (await listaVipFechada()) {
+    return NextResponse.json({ error: MSG_FECHADA, fechada: true }, { status: 403 });
+  }
+
   let payload: unknown;
   try {
     payload = await request.json();

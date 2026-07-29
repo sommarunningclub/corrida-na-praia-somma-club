@@ -3,6 +3,7 @@ import { AgendaEvento } from "@/components/agenda-evento";
 import { ListaVipForm } from "@/components/lista-vip-form";
 import { PrazoListaVip } from "@/components/prazo-lista-vip";
 import { Sunburst } from "@/components/ui/sunburst";
+import { listaVipFechada } from "@/lib/config-store";
 import { EVENTO, LISTA_VIP, SORTEIO } from "@/lib/napraia-data";
 
 // Resumo do que o ingresso contempla. A lista completa fica na seção #inclui;
@@ -20,7 +21,11 @@ const CONTEMPLA = [
   "Crianças até 10 anos não pagam",
 ];
 
-export function Inscricao() {
+export async function Inscricao() {
+  // Chave do /admin. Vem de `unstable_cache` com tag, então a home continua
+  // pré-renderizada e o toggle reflete assim que a ação invalida a tag.
+  const fechada = await listaVipFechada();
+
   return (
     <section id="inscricao" className="section relative overflow-hidden bg-ink">
       <Sunburst className="pointer-events-none absolute -left-[22%] top-1/2 w-[80vw] max-w-[560px] -translate-y-1/2 opacity-[0.07] lg:-left-[12%] lg:w-[46vw]" />
@@ -107,7 +112,7 @@ export function Inscricao() {
           </Reveal>
 
           <Reveal delay={0.12} y={36}>
-            <ListaVipForm />
+            <ListaVipForm fechada={fechada} />
           </Reveal>
         </div>
       </div>
