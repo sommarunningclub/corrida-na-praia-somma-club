@@ -232,6 +232,15 @@ export function renderVipEmail({ nome }: { nome: string }): string {
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
 <title>Você está na lista VIP da Corrida na Praia</title>
+<style>
+  /* No celular o lockup das marcas fica centralizado; no desktop segue
+     à esquerda. inline-table + text-align no pai é o jeito que Gmail,
+     Apple Mail e Outlook mobile respeitam de forma consistente. */
+  @media only screen and (max-width: 600px) {
+    .lockup-wrap { text-align: center !important; }
+    .lockup { display: inline-table !important; float: none !important; }
+  }
+</style>
 </head>
 <body style="margin:0;padding:0;background:#EDEDF2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
 
@@ -246,9 +255,10 @@ export function renderVipEmail({ nome }: { nome: string }): string {
              style="max-width:600px;background:#ffffff;border-radius:22px;overflow:hidden;">
 
         <!-- ─── Cabeçalho: as duas marcas ─── -->
-        <tr><td bgcolor="${NAVY}" style="padding:26px 28px;">
-          <!-- As duas marcas juntas à esquerda, como um lockup só. -->
-          <table role="presentation" cellpadding="0" cellspacing="0">
+        <tr><td class="lockup-wrap" bgcolor="${NAVY}" style="padding:26px 28px;">
+          <!-- As duas marcas juntas, como um lockup só: à esquerda no
+               desktop, centralizado no celular (ver media query). -->
+          <table class="lockup" role="presentation" cellpadding="0" cellspacing="0">
             <tr>
               <td valign="middle">
                 <img src="${base}/email/logo-somma.png" width="132" alt="${SOMMA.nome}" style="display:block;border:0;">
