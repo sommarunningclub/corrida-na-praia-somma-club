@@ -219,7 +219,7 @@ export function ObrigadoTicket() {
             aviso de abertura das vendas.
           </p>
           <a
-            href={SOMMA.links.grupo || SOMMA.links.whatsapp}
+            href={SOMMA.links.whatsapp}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-primary w-full sm:w-auto"
