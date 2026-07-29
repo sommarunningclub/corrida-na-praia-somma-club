@@ -163,7 +163,14 @@ export function renderVipEmail({ nome }: { nome: string }): string {
         <td valign="top" style="padding:18px 18px 18px 12px;">
           <p style="margin:0 0 4px;color:${TINTA};font-size:16px;font-weight:700;line-height:1.3;">${escapeHtml(e.titulo)}</p>
           <p style="margin:0;color:${CINZA};font-size:14px;line-height:21px;">${escapeHtml(e.descricao)}</p>
-          ${e.destaque ? `<p style="margin:10px 0 0;"><span style="display:inline-block;background:${LARANJA};color:#fff;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;border-radius:9999px;">Você primeiro</span></p>` : ""}
+          ${
+            e.destaque
+              ? `<p style="margin:10px 0 0;">
+                   <span style="display:inline-block;background:${LARANJA};color:#fff;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;border-radius:9999px;">Você primeiro</span>
+                   <span style="display:inline-block;background:${TINTA};color:#fff;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;border-radius:9999px;margin-left:6px;">${escapeHtml(PRIORIDADE.selo)}</span>
+                 </p>`
+              : ""
+          }
         </td>
       </tr>
     </table>
@@ -334,7 +341,15 @@ export function renderVipEmail({ nome }: { nome: string }): string {
           PRIORIDADE.titulo,
           `<p style="margin:0 0 16px;color:${CINZA};font-size:15px;line-height:23px;">${escapeHtml(PRIORIDADE.descricao)}</p>
            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${etapasVenda}</table>
-           <p style="margin:6px 0 0;color:${CINZA_CLARO};font-size:13px;line-height:20px;">${escapeHtml(PRIORIDADE.aviso)}</p>`
+           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:rgba(255,44,3,.07);border:1px solid rgba(255,44,3,.25);border-radius:14px;margin-top:6px;">
+             <tr><td style="padding:16px 18px;">
+               <p style="margin:0 0 8px;">
+                 <span style="display:inline-block;background:${LARANJA};color:#fff;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:6px 12px;border-radius:9999px;">${escapeHtml(PRIORIDADE.selo)}</span>
+               </p>
+               <p style="margin:0;color:${TINTA};font-size:15px;line-height:23px;">${escapeHtml(PRIORIDADE.reforcoDesconto)}</p>
+             </td></tr>
+           </table>
+           <p style="margin:12px 0 0;color:${CINZA_CLARO};font-size:13px;line-height:20px;">${escapeHtml(PRIORIDADE.aviso)}</p>`
         )}
 
         <!-- ─── O que está incluído ─── -->
@@ -470,6 +485,7 @@ export function renderVipEmailText({ nome }: { nome: string }): string {
     `== ${PRIORIDADE.titulo.toUpperCase()} ==`,
     PRIORIDADE.descricao,
     ...PRIORIDADE.etapas.map((e) => `${e.ordem}. ${e.titulo}: ${e.descricao}`),
+    `${PRIORIDADE.selo.toUpperCase()}: ${PRIORIDADE.reforcoDesconto}`,
     PRIORIDADE.aviso,
     "",
     "== O QUE O INGRESSO INCLUI ==",

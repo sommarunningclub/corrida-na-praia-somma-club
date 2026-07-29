@@ -39,15 +39,31 @@ export function Prioridade() {
               <p className="text-[15px] leading-6 text-muted">{etapa.descricao}</p>
 
               {etapa.destaque && (
-                <span className="mt-5 inline-flex items-center rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white">
-                  Você primeiro
+                <span className="mt-5 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center rounded-full bg-primary px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white">
+                    Você primeiro
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-ink px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-white">
+                    {PRIORIDADE.selo}
+                  </span>
                 </span>
               )}
             </div>
           ))}
         </Reveal>
 
-        <Reveal delay={0.1} className="mt-8">
+        <Reveal delay={0.08} className="mt-5">
+          <div className="flex flex-col gap-3 rounded-panel border border-primary/25 bg-primary-soft p-5 sm:flex-row sm:items-center sm:gap-5 sm:p-6">
+            <span className="inline-flex w-fit shrink-0 items-center rounded-full bg-primary px-3.5 py-2 text-[12px] font-bold uppercase tracking-[0.12em] text-white">
+              {PRIORIDADE.selo}
+            </span>
+            <p className="text-[15px] leading-6 text-ink">
+              {PRIORIDADE.reforcoDesconto}
+            </p>
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.1} className="mt-4">
           <p className="rounded-card border border-black/[0.08] bg-white px-5 py-4 text-[14px] leading-6 text-muted">
             {PRIORIDADE.aviso}
           </p>

@@ -147,22 +147,28 @@ export const LISTA_VIP_PRAZO = "2026-08-01T23:59:59-03:00";
 
 export const PRIORIDADE = {
   eyebrow: "COMO VAI FUNCIONAR A VENDA",
-  titulo: "A comunidade Somma compra primeiro",
+  titulo: "A comunidade Somma compra primeiro, e com desconto",
   descricao:
-    "A venda dos ingressos acontece em duas etapas. Quem é do Somma Club tem prioridade e compra antes de todo mundo. Depois, o que sobrar vai para o público geral.",
+    "A venda dos ingressos acontece em duas etapas. Quem é do Somma Club tem prioridade, compra antes de todo mundo e paga menos. Depois, o que sobrar vai para o público geral, pelo valor cheio.",
+  // O desconto é o argumento mais forte da lista VIP. Aparece como selo nos
+  // dois lugares em que a decisão acontece: aqui e no bloco de cadastro.
+  // O valor em si só sai na abertura das vendas, por decisão do cliente.
+  selo: "Preço com desconto",
+  reforcoDesconto:
+    "Quem está na lista VIP compra na pré-venda, com valor menor que o da venda geral. O desconto vale enquanto durar a etapa da comunidade.",
   etapas: [
     {
       ordem: "01",
       titulo: "Comunidade Somma Club",
       descricao:
-        "Quem já é membro do Somma Club e entrou na lista VIP recebe o aviso primeiro e compra antes da abertura geral.",
+        "Quem já é membro do Somma Club e entrou na lista VIP recebe o aviso primeiro e compra antes da abertura geral com desconto.",
       destaque: true,
     },
     {
       ordem: "02",
       titulo: "Público geral",
       descricao:
-        "Depois do prazo da comunidade, as vagas restantes são abertas para todo mundo, enquanto durarem.",
+        "Depois do prazo da comunidade, as vagas restantes são abertas para todo mundo pelo valor cheio, enquanto durarem.",
       destaque: false,
     },
   ],
@@ -176,13 +182,14 @@ export const LISTA_VIP = {
   eyebrow: "LISTA VIP",
   titulo: "Quem entra primeiro, corre na frente",
   descricao:
-    "As vagas da Corrida na Praia são limitadas e a comunidade Somma Club compra primeiro. Entre na lista VIP para receber o aviso de abertura antes do público geral.",
+    "As vagas da Corrida na Praia são limitadas e a comunidade Somma Club compra primeiro, com desconto. Entre na lista VIP para receber o aviso de abertura antes do público geral.",
   prazoTitulo: "As inscrições na lista VIP terminam em",
   prazoEncerrado: "As inscrições na lista VIP foram encerradas.",
   // O e-mail de confirmação volta a sair no ato do cadastro
   // (VIP_EMAIL_ENABLED). O aviso de abertura das vendas sai pelos dois
   // canais, com o telefone e o e-mail informados aqui.
   vantagens: [
+    "Preço com desconto na pré-venda",
     "Acesso antecipado à abertura das vendas",
     "Aviso por e-mail e WhatsApp antes da venda geral",
     "Concorre a um ingresso para o show",
