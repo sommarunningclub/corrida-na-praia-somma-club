@@ -576,6 +576,7 @@ function FichaLead({
     ["Telefone", telefoneVisivel(lead.telefone)],
     ["CPF", lead.cpf],
     ["Origem", ORIGEM_ROTULO[lead.origem] ?? lead.origem],
+    ["Grupo do WhatsApp", lead.grupo_whatsapp ? `Grupo ${lead.grupo_whatsapp}` : "—"],
     ["Status do e-mail", ROTULO_STATUS[lead.email_status ?? "nao_enviado"] ?? "—"],
     ["E-mail enviado em", dataHora(lead.email_sent_at)],
     ["Entrou na lista em", dataHora(lead.created_at)],

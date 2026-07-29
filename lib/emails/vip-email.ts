@@ -18,11 +18,18 @@ import { firstName } from "@/lib/validation";
 interface SendVipArgs {
   nome: string;
   email: string;
+  /** Convite do grupo do WhatsApp da comunidade, quando a pessoa acabou de
+   *  virar membro. Nulo para quem já era: o bloco simplesmente não aparece. */
+  grupoUrl?: string | null;
 }
 
 /** Envia o e-mail de confirmação da Lista VIP.
  *  Retorna o id do Resend (para gravar no lead) ou null se falhar. */
-export async function sendVipEmail({ nome, email }: SendVipArgs): Promise<string | null> {
+export async function sendVipEmail({
+  nome,
+  email,
+  grupoUrl = null,
+}: SendVipArgs): Promise<string | null> {
   // Chave de liga/desliga: com o envio desligado o cadastro responde na hora,
   // sem esperar a ida ao Resend. Para religar, defina VIP_EMAIL_ENABLED=true.
   if (process.env.VIP_EMAIL_ENABLED !== "true") {
@@ -43,8 +50,8 @@ export async function sendVipEmail({ nome, email }: SendVipArgs): Promise<string
       from,
       to: email,
       subject: `${firstName(nome)}, você está na lista VIP da Corrida na Praia`,
-      html: renderVipEmail({ nome }),
-      text: renderVipEmailText({ nome }),
+      html: renderVipEmail({ nome, grupoUrl }),
+      text: renderVipEmailText({ nome, grupoUrl }),
     });
 
     if (error) {
@@ -123,10 +130,40 @@ function botao(href: string, texto: string, fundo = LARANJA, cor = "#ffffff"): s
 
 /* ─── Template ─────────────────────────────────────────────────────────── */
 
-export function renderVipEmail({ nome }: { nome: string }): string {
+export function renderVipEmail({
+  nome,
+  grupoUrl = null,
+}: {
+  nome: string;
+  grupoUrl?: string | null;
+}): string {
   const primeiro = escapeHtml(firstName(nome));
   const { local } = EVENTO;
   const base = baseUrl();
+
+  // Convite ao grupo da comunidade. O comprovante da página de obrigado vive
+  // em sessionStorage e morre com a aba: aqui o link fica guardado para sempre.
+  const blocoGrupo = grupoUrl
+    ? `
+        <tr><td style="padding:16px 28px 0;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                 style="background:${NAVY};border-radius:16px;">
+            <tr><td style="padding:22px;text-align:center;">
+              <p style="margin:0 0 6px;color:${AMARELO};font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">
+                Bem-vindo ao ${SOMMA.nome}
+              </p>
+              <p style="margin:0 0 8px;color:#ffffff;font-size:18px;line-height:24px;font-weight:700;">
+                Agora você é da comunidade
+              </p>
+              <p style="margin:0 0 18px;color:rgba(255,255,255,.6);font-size:14px;line-height:22px;">
+                Entre no grupo do WhatsApp para acompanhar os treinos, os eventos e o
+                aviso de abertura das vendas.
+              </p>
+              ${botao(grupoUrl, "Entrar no grupo do Somma")}
+            </td></tr>
+          </table>
+        </td></tr>`
+    : "";
 
   const inclui = INCLUI.map((i) => itemLista(escapeHtml(i))).join("");
 
@@ -314,6 +351,9 @@ export function renderVipEmail({ nome }: { nome: string }): string {
           </table>
         </td></tr>
 
+        <!-- ─── Grupo do WhatsApp (só para quem acabou de virar membro) ─── -->
+        ${blocoGrupo}
+
         <!-- ─── Sorteio ─── -->
         <tr><td style="padding:16px 28px 0;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
@@ -459,7 +499,13 @@ export function renderVipEmail({ nome }: { nome: string }): string {
 </html>`;
 }
 
-export function renderVipEmailText({ nome }: { nome: string }): string {
+export function renderVipEmailText({
+  nome,
+  grupoUrl = null,
+}: {
+  nome: string;
+  grupoUrl?: string | null;
+}): string {
   const { local } = EVENTO;
   const linha = (t: string) => `- ${t}`;
 
@@ -470,6 +516,15 @@ export function renderVipEmailText({ nome }: { nome: string }): string {
     "avisado por e-mail, Grupos do WhatsApp Somma e pelas redes sociais oficiais do",
     "Somma Club assim que as vendas abrirem, antes do público geral.",
     "Fica ligado e não dá mole.",
+    ...(grupoUrl
+      ? [
+          "",
+          `== BEM-VINDO AO ${SOMMA.nome.toUpperCase()} ==`,
+          "Agora você é da comunidade. Entre no grupo do WhatsApp para acompanhar os",
+          "treinos, os eventos e o aviso de abertura das vendas.",
+          grupoUrl,
+        ]
+      : []),
     "",
     "== A CORRIDA ==",
     `Data: ${EVENTO.dataExtenso}`,

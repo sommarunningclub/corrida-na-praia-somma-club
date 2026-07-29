@@ -96,7 +96,8 @@ export function ListaVipForm({ fechada = false }: { fechada?: boolean }) {
   const irParaObrigado = (
     dados: { nome: string; email: string; telefone: string },
     codigo: string | null,
-    novoMembro: boolean
+    novoMembro: boolean,
+    grupo: number | null = null
   ) => {
     guardarComprovante({
       nome: dados.nome,
@@ -105,6 +106,7 @@ export function ListaVipForm({ fechada = false }: { fechada?: boolean }) {
       cpfMascarado: mascararCpf(cpf),
       codigo,
       novoMembro,
+      grupo,
     });
     router.push("/obrigado");
   };
@@ -283,7 +285,8 @@ export function ListaVipForm({ fechada = false }: { fechada?: boolean }) {
       irParaObrigado(
         { nome: cadastro.nome, email: cadastro.email, telefone: cadastro.telefone },
         dados.codigo ?? null,
-        Boolean(dados.novoMembro)
+        Boolean(dados.novoMembro),
+        typeof dados.grupo === "number" ? dados.grupo : null
       );
     } catch {
       setErroGeral("Falha de conexão. Verifique sua internet e tente de novo.");

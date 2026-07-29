@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServiceSupabase } from "@/lib/supabase";
 import { CPF_TABELA_MEMBROS, formatarCpf, formatosDeCpf } from "@/lib/membro";
 import { gravarLead, lerUtms } from "@/lib/lista-vip-store";
+import { proximoGrupo } from "@/lib/grupos";
 import { brDateToISO, novoMembroSchema, onlyDigits } from "@/lib/validation";
 import { maskPhone } from "@/lib/validation";
 import { listaVipFechada, MSG_FECHADA } from "@/lib/config-store";
@@ -90,12 +91,17 @@ export async function POST(request: Request) {
     }
   }
 
+  // Só convida para o grupo quem de fato acabou de entrar na comunidade: quem
+  // já era membro está nos grupos desde antes.
+  const grupo = jaEraMembro ? null : await proximoGrupo(supabase);
+
   const resultado = await gravarLead(supabase, {
     nome: dados.nome,
     email: dados.email,
     telefone: onlyDigits(dados.telefone),
     cpfDigits,
     origem: "novo-membro",
+    grupoWhatsapp: grupo,
     ...lerUtms(payload),
   });
 
@@ -106,7 +112,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     ok: true,
     codigo: resultado.codigo,
-    // Só convida para o grupo quem de fato acabou de entrar na comunidade.
     novoMembro: !jaEraMembro,
+    grupo,
   });
 }

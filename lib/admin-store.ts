@@ -4,7 +4,7 @@ import { getServiceSupabase, LISTA_VIP_TABLE } from "@/lib/supabase";
 import { ORIGEM_PAINEL, type LeadAdmin } from "@/lib/admin-tipos";
 
 const CAMPOS =
-  "id, nome, email, telefone, cpf, origem, utm_source, utm_medium, utm_campaign, resend_email_id, email_status, email_sent_at, created_at";
+  "id, nome, email, telefone, cpf, origem, grupo_whatsapp, utm_source, utm_medium, utm_campaign, resend_email_id, email_status, email_sent_at, created_at";
 
 export async function listarLeads(): Promise<LeadAdmin[]> {
   const supabase = getServiceSupabase();

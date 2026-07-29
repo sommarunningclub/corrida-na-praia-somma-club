@@ -15,6 +15,9 @@ export type Comprovante = {
   /** true quando a pessoa acabou de entrar na comunidade pelo formulário.
    *  A página de obrigado usa isso para convidar ao grupo do WhatsApp. */
   novoMembro?: boolean;
+  /** Número do grupo do WhatsApp sorteado no servidor, em rodízio. Guardado
+   *  aqui para o convite não trocar de grupo se a página for recarregada. */
+  grupo?: number | null;
 };
 
 const CHAVE = "napraia:comprovante";
@@ -41,6 +44,7 @@ export function lerComprovante(): Comprovante | null {
       cpfMascarado: dados.cpfMascarado ?? "",
       codigo: dados.codigo ?? null,
       novoMembro: dados.novoMembro ?? false,
+      grupo: typeof dados.grupo === "number" ? dados.grupo : null,
     };
   } catch {
     return null;

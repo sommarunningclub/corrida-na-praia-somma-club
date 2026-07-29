@@ -9,6 +9,8 @@ export type LeadAdmin = {
   telefone: string;
   cpf: string;
   origem: string;
+  /** Grupo do WhatsApp sorteado no cadastro. Nulo para quem já era membro. */
+  grupo_whatsapp: number | null;
   utm_source: string | null;
   utm_medium: string | null;
   utm_campaign: string | null;
