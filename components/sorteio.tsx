@@ -17,33 +17,68 @@ export function Sorteio() {
               {SORTEIO.titulo}
             </h2>
 
-            <p className="mb-5 text-[19px] font-bold leading-tight text-navy-deep sm:text-[24px]">
+            <p className="mb-6 text-[19px] font-bold leading-tight text-navy-deep sm:text-[24px]">
               {SORTEIO.atracoes}
             </p>
 
-            {/* Distinção explícita: sorteio sexta × show sábado */}
-            <div className="mb-6 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-3">
-              <div className="inline-flex items-baseline gap-2 rounded-full bg-navy-deep px-4 py-2 text-white">
-                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-r2">
-                  Sorteio
-                </span>
-                <span className="text-[13px] font-semibold sm:text-[14px]">
-                  {SORTEIO.sorteioDia}
-                </span>
-              </div>
-              <div className="inline-flex items-baseline gap-2 rounded-full border border-navy-deep/20 bg-white/55 px-4 py-2 text-navy-deep">
-                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-navy-deep/55">
-                  Show
-                </span>
-                <span className="text-[13px] font-semibold sm:text-[14px]">
-                  {SORTEIO.showDia} · {SORTEIO.hora}
-                </span>
-              </div>
-            </div>
+            {/* Sorteio na sexta, entrega presencial no sábado de manhã, show à noite.
+                A ordem importa: é o que responde "e como eu recebo o ingresso?". */}
+            <ol className="relative mb-6 space-y-2.5">
+              <span
+                aria-hidden
+                className="absolute left-[15px] top-3 h-[calc(100%-24px)] w-px bg-navy-deep/15"
+              />
+              {SORTEIO.etapas.map((etapa, i) => (
+                <li key={etapa.titulo} className="flex items-start gap-3 sm:gap-4">
+                  <span
+                    aria-hidden
+                    className={`relative z-10 mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-bold tabular-nums ${
+                      etapa.destaque
+                        ? "bg-navy-deep text-r2 shadow-lift"
+                        : "border border-navy-deep/20 bg-r2 text-navy-deep"
+                    }`}
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
 
-            <p className="mb-6 text-[15px] font-medium text-navy-deep/70 sm:text-base">
-              {SORTEIO.local}
-            </p>
+                  <div
+                    className={`min-w-0 flex-1 rounded-2xl px-4 py-3 ${
+                      etapa.destaque
+                        ? "bg-navy-deep text-white shadow-lift"
+                        : "border border-navy-deep/12 bg-white/55 text-navy-deep"
+                    }`}
+                  >
+                    <p
+                      className={`text-[10px] font-bold uppercase tracking-[0.14em] ${
+                        etapa.destaque ? "text-r2" : "text-navy-deep/55"
+                      }`}
+                    >
+                      {etapa.selo}
+                    </p>
+                    <h3 className="mt-1 text-[15px] font-bold leading-snug sm:text-[16px]">
+                      {etapa.titulo}
+                    </h3>
+                    <p
+                      className={`mt-1 text-[13px] leading-5 sm:text-[14px] ${
+                        etapa.destaque ? "text-white/75" : "text-navy-deep/65"
+                      }`}
+                    >
+                      {etapa.descricao}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+
+            {/* A condição que muda o comportamento de quem participa: tem que aparecer. */}
+            <div className="mb-6 rounded-2xl border border-navy-deep/15 border-l-4 border-l-navy-deep bg-white/70 px-4 py-3.5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-navy-deep/55">
+                Importante
+              </p>
+              <p className="mt-1 text-[13px] font-medium leading-5 text-navy-deep sm:text-[14px]">
+                {SORTEIO.avisoPresenca}
+              </p>
+            </div>
 
             <p className="mb-7 max-w-md text-[12px] leading-5 text-navy-deep/55">
               {SORTEIO.regra}

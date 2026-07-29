@@ -133,6 +133,35 @@ export const SORTEIO = {
   local: "Na Praia Parque, Brasília",
   sorteioDia: "Sexta-feira, 31 de julho",
   quando: "Sorteio nesta sexta-feira, 31 de julho",
+
+  // O caminho do ingresso tem três momentos em dois dias, e a entrega presencial
+  // é a parte que gera dúvida. Manter as etapas separadas e nesta ordem.
+  etapas: [
+    {
+      selo: "Sexta, 31 de julho · até 21h30",
+      titulo: "Sorteio e divulgação do resultado",
+      descricao:
+        "O sorteio acontece na sexta-feira e o nome do ganhador é divulgado até às 21h30.",
+      destaque: false,
+    },
+    {
+      selo: "Sábado, 1º de agosto · a partir das 7h",
+      titulo: "Entrega do ingresso no Corre do Somma Club",
+      descricao: "Retirada presencial no Estacionamento 10, com o ganhador em pessoa.",
+      destaque: true,
+    },
+    {
+      selo: "Sábado, 1º de agosto · 18h",
+      titulo: "Show no Na Praia Festival",
+      descricao: "Nattan, Matheus & Kauan e Bia Frazzo no Na Praia Parque, em Brasília.",
+      destaque: false,
+    },
+  ],
+
+  // Regra que muda o comportamento de quem se inscreve: precisa aparecer no Corre.
+  avisoPresenca:
+    "O ingresso só é entregue presencialmente, no Corre do Somma Club. Se o ganhador não estiver no local, fazemos um novo sorteio na hora, ali mesmo, entre os participantes da lista VIP que estiverem presentes.",
+
   regra: "A participação está sujeita ao regulamento oficial da ação promocional.",
   poster: "/sorteio-nattan-matheus-kauan-bia.png",
   url: "https://r2.com.vc/produto/01-08-nattan-matheus-e-kauan-bia-frazzo/",
