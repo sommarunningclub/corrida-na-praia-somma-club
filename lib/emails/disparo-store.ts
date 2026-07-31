@@ -252,6 +252,68 @@ export async function enviarAmostra({
   return { id: data?.id ?? null };
 }
 
+export type ResumoOnda = {
+  onda: Onda;
+  campanha: string;
+  /** Rótulo curto do papel da onda, para a tela não virar "onda 1, 2, 3". */
+  papel: string;
+  total: number;
+  agendados: number;
+  entregues: number;
+  abertos: number;
+  cliques: number;
+  cancelados: number;
+  problemas: number;
+  /** Horário de envio combinado com o Resend. */
+  agendadoPara: string | null;
+};
+
+const PAPEL_DA_ONDA: Record<Onda, string> = {
+  1: "O convite",
+  2: "O corre",
+  3: "Última chamada",
+};
+
+/** Uma linha por onda para o painel: quanto foi, quanto chegou, quanto voltou. */
+export async function resumoCampanha(): Promise<ResumoOnda[]> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Supabase indisponível.");
+
+  const { data, error } = await supabase
+    .from(DISPAROS_TABLE)
+    .select("campanha, email_status, agendado_para");
+
+  if (error) throw new Error(`Falha ao ler os disparos: ${error.message}`);
+
+  const linhas = (data ?? []) as Array<{
+    campanha: string;
+    email_status: string | null;
+    agendado_para: string | null;
+  }>;
+
+  return ([1, 2, 3] as Onda[]).map((onda) => {
+    const campanha = campanhaDaOnda(onda);
+    const minhas = linhas.filter((l) => l.campanha === campanha);
+    const conta = (status: string[]) =>
+      minhas.filter((l) => status.includes(l.email_status ?? "")).length;
+
+    return {
+      onda,
+      campanha,
+      papel: PAPEL_DA_ONDA[onda],
+      total: minhas.length,
+      agendados: conta(["scheduled"]),
+      // Abertura e clique implicam entrega; contam nos dois lugares.
+      entregues: conta(["delivered", "opened", "clicked"]),
+      abertos: conta(["opened", "clicked"]),
+      cliques: conta(["clicked"]),
+      cancelados: conta(["canceled"]),
+      problemas: conta(["bounced", "complained", "suppressed", "failed"]),
+      agendadoPara: minhas.find((l) => l.agendado_para)?.agendado_para ?? null,
+    };
+  });
+}
+
 /**
  * Atualiza no banco o último evento de cada disparo de uma campanha.
  *

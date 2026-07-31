@@ -4,10 +4,12 @@ import { useState } from "react";
 import { sair } from "@/app/admin/actions";
 import { Inscritos } from "@/app/admin/inscritos";
 import { Disparos } from "@/app/admin/disparos";
+import { Campanha } from "@/app/admin/campanha";
 import type { LeadAdmin } from "@/lib/admin-tipos";
 import type { Papel } from "@/lib/admin-auth";
+import type { ResumoOnda } from "@/lib/emails/disparo-store";
 
-type Aba = "inscritos" | "disparos";
+type Aba = "inscritos" | "disparos" | "campanha";
 
 const ICONES: Record<Aba, React.ReactNode> = {
   inscritos: (
@@ -24,15 +26,24 @@ const ICONES: Record<Aba, React.ReactNode> = {
       strokeLinejoin="round"
     />
   ),
+  campanha: (
+    <path
+      d="M4 13.5v-3A1.5 1.5 0 0 1 5.5 9h3L14 5v14l-5.5-4h-3A1.5 1.5 0 0 1 4 13.5ZM17.5 9.5a4 4 0 0 1 0 5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  ),
 };
 
 export function Painel({
   leads,
+  ondas,
   fechada,
   erroCarga,
   papel,
 }: {
   leads: LeadAdmin[];
+  ondas: ResumoOnda[];
   fechada: boolean;
   erroCarga: string;
   papel: Papel;
@@ -57,6 +68,7 @@ export function Painel({
   const abas: Array<[Aba, string]> = [
     ["inscritos", "Inscritos"],
     ["disparos", "Disparos"],
+    ["campanha", "Campanha"],
   ];
 
   return (
@@ -78,13 +90,13 @@ export function Painel({
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <div className="grid grid-cols-2 gap-1 rounded-full border border-white/10 bg-white/[0.04] p-1">
+            <div className="grid grid-cols-3 gap-1 rounded-full border border-white/10 bg-white/[0.04] p-1">
               {abas.map(([chave, rotulo]) => (
                 <button
                   key={chave}
                   type="button"
                   onClick={() => setAba(chave)}
-                  className={`min-h-[40px] rounded-full px-8 text-[14px] font-semibold transition ${
+                  className={`min-h-[40px] rounded-full px-6 text-[14px] font-semibold transition ${
                     aba === chave ? "bg-white text-[#0b0b0f]" : "text-white/55 hover:text-white"
                   }`}
                 >
@@ -108,11 +120,9 @@ export function Painel({
           </p>
         )}
 
-        {aba === "inscritos" ? (
-          <Inscritos leads={leads} fechada={fechada} papel={papel} />
-        ) : (
-          <Disparos leads={leads} papel={papel} />
-        )}
+        {aba === "inscritos" && <Inscritos leads={leads} fechada={fechada} papel={papel} />}
+        {aba === "disparos" && <Disparos leads={leads} papel={papel} />}
+        {aba === "campanha" && <Campanha ondas={ondas} papel={papel} />}
       </main>
 
       {/* Tab bar do iOS: fixa, translúcida, respeitando a safe area. */}

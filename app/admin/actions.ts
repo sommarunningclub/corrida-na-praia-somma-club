@@ -20,6 +20,14 @@ import {
   type ResultadoSync,
 } from "@/lib/admin-store";
 import { definirListaVipFechada } from "@/lib/config-store";
+import type { Onda } from "@/lib/emails/corre-email";
+import {
+  campanhaDaOnda,
+  cancelarOnda,
+  dispararOnda,
+  podarOnda,
+  sincronizarDisparos,
+} from "@/lib/emails/disparo-store";
 
 export type EstadoAcao = { ok: boolean; mensagem: string } | null;
 
@@ -171,6 +179,81 @@ export async function verDisparo(resendEmailId: string): Promise<EstadoDisparo> 
   try {
     await exigirSessao();
     return { ok: true, detalhe: await consultarDisparo(resendEmailId) };
+  } catch (err) {
+    return { ok: false, mensagem: (err as Error).message };
+  }
+}
+
+/* ─── Campanha do corre ───────────────────────────────────────────────────── */
+
+/**
+ * As quatro operações da campanha, todas de editor: mexem em e-mail que já
+ * está de saída. Cada uma devolve o resultado em uma frase, porque o painel
+ * é lido no celular, muitas vezes em pé, minutos antes do disparo.
+ */
+export async function sincronizarOnda(onda: Onda): Promise<EstadoAcao> {
+  try {
+    await exigirEditor();
+    const r = await sincronizarDisparos(campanhaDaOnda(onda));
+    revalidatePath("/admin");
+    return {
+      ok: true,
+      mensagem: `${r.consultados} consultados · ${r.atualizados} atualizados${
+        r.falhas ? ` · ${r.falhas} sem resposta` : ""
+      }`,
+    };
+  } catch (err) {
+    return { ok: false, mensagem: (err as Error).message };
+  }
+}
+
+export async function podarOndaAcao(onda: Onda): Promise<EstadoAcao> {
+  try {
+    await exigirEditor();
+    const r = await podarOnda(onda);
+    revalidatePath("/admin");
+    if (r.clicaram === 0) {
+      return { ok: true, mensagem: "Ninguém clicou ainda — nada a tirar da lista." };
+    }
+    return {
+      ok: true,
+      mensagem: `${r.cancelados} tirados da onda por já terem confirmado presença${
+        r.falhas ? ` · ${r.falhas} falharam` : ""
+      }`,
+    };
+  } catch (err) {
+    return { ok: false, mensagem: (err as Error).message };
+  }
+}
+
+export async function cancelarOndaAcao(onda: Onda): Promise<EstadoAcao> {
+  try {
+    await exigirEditor();
+    const r = await cancelarOnda(onda);
+    revalidatePath("/admin");
+    return {
+      ok: true,
+      mensagem: `${r.cancelados} e-mails cancelados${r.falhas ? ` · ${r.falhas} falharam` : ""}`,
+    };
+  } catch (err) {
+    return { ok: false, mensagem: (err as Error).message };
+  }
+}
+
+/** Agenda quem entrou na lista depois que a onda foi montada. A trava de
+ *  disparo duplicado garante que ninguém recebe duas vezes. */
+export async function incluirNovosNaOnda(
+  onda: Onda,
+  quando: string
+): Promise<EstadoAcao> {
+  try {
+    await exigirEditor();
+    const r = await dispararOnda({ onda, filtro: "todos", quando });
+    revalidatePath("/admin");
+    if (r.enviados === 0) {
+      return { ok: true, mensagem: "Nenhum cadastro novo para incluir." };
+    }
+    return { ok: true, mensagem: `${r.enviados} cadastros novos entraram na onda.` };
   } catch (err) {
     return { ok: false, mensagem: (err as Error).message };
   }

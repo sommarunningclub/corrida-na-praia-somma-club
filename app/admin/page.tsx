@@ -1,5 +1,6 @@
 import { papelAtual } from "@/lib/admin-auth";
 import { listarLeads } from "@/lib/admin-store";
+import { resumoCampanha } from "@/lib/emails/disparo-store";
 import { listaVipFechada } from "@/lib/config-store";
 import { LoginAdmin } from "@/app/admin/login-admin";
 import { Painel } from "@/app/admin/painel";
@@ -20,9 +21,18 @@ export default async function AdminPage() {
     erro = (e as Error).message;
   }
 
+  // A campanha é acessória: se ela falhar, o painel de inscritos segue de pé.
+  let ondas = null;
+  try {
+    ondas = await resumoCampanha();
+  } catch (e) {
+    erro = erro || (e as Error).message;
+  }
+
   return (
     <Painel
       leads={leads ?? []}
+      ondas={ondas ?? []}
       fechada={await listaVipFechada()}
       erroCarga={erro}
       papel={papel}
