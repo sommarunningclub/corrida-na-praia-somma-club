@@ -143,29 +143,48 @@ function CartaoOnda({ onda, soLeitura }: { onda: ResumoOnda; soLeitura: boolean 
               }
             />
           )}
-          {!jaSaiu && (
+          {!jaSaiu && !confirmando && (
             <Acao
-              rotulo={confirmando ? "Confirmar cancelamento" : "Cancelar onda"}
+              rotulo="Cancelar onda"
               perigo
               ocupado={ocupado}
-              aoClicar={() => {
-                if (!confirmando) {
-                  setConfirmando(true);
-                  return;
-                }
-                setConfirmando(false);
-                rodar(() => cancelarOndaAcao(onda.onda));
-              }}
+              aoClicar={() => setConfirmando(true)}
             />
           )}
         </div>
       )}
 
+      {/* A confirmação nasce em outro lugar da tela, não no botão que foi
+          clicado: com os dois no mesmo ponto, um duplo clique cancela a onda
+          inteira sem ninguém ter lido o aviso. */}
       {confirmando && (
-        <p className="mt-2 text-[12px] text-red-300">
-          Cancelar tira os {onda.agendados} e-mails da fila do Resend. Não dá para
-          reagendar depois, só montar a onda de novo.
-        </p>
+        <div className="mt-3 rounded-xl border border-red-400/30 bg-red-400/[0.07] p-3">
+          <p className="text-[13px] leading-relaxed text-red-200">
+            Cancelar tira os {onda.agendados} e-mails da fila do Resend. Não dá para
+            reagendar depois: para voltar atrás é preciso remontar a onda, e cada
+            pessoa recebe um e-mail novo.
+          </p>
+          <div className="mt-2.5 flex gap-2">
+            <button
+              type="button"
+              disabled={ocupado}
+              onClick={() => {
+                setConfirmando(false);
+                rodar(() => cancelarOndaAcao(onda.onda));
+              }}
+              className="min-h-[40px] rounded-full border border-red-400/40 px-3.5 text-[13px] font-semibold text-red-200 transition hover:bg-red-400/15 disabled:opacity-45"
+            >
+              Sim, cancelar os {onda.agendados}
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmando(false)}
+              className="min-h-[40px] rounded-full border border-white/12 px-3.5 text-[13px] font-semibold text-white/70 transition hover:border-white/30"
+            >
+              Voltar
+            </button>
+          </div>
+        </div>
       )}
 
       {ocupado && (

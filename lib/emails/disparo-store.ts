@@ -395,6 +395,53 @@ export async function reagendarOnda(
 }
 
 /**
+ * Monta de novo uma onda que foi cancelada, no todo ou pela metade.
+ *
+ * Cancelamento no Resend não tem volta: o e-mail cancelado não é reagendado,
+ * precisa ser criado outro. Como a trava de disparo duplicado olha para a
+ * linha no banco, as linhas canceladas saem primeiro, senão a pessoa fica
+ * para sempre marcada como "já disparada" e nunca mais recebe a onda.
+ *
+ * Idempotente de propósito: rodar duas vezes não manda dois e-mails, porque
+ * o segundo passo só alcança quem ficou sem linha.
+ */
+export async function remontarOnda(
+  onda: Onda,
+  quando: string
+): Promise<{ limpos: number; reagendados: number; novos: number; falhas: number }> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Supabase indisponível.");
+
+  if (new Date(quando).getTime() < Date.now() + MARGEM_MS) {
+    throw new Error("Esse horário já passou ou está muito próximo.");
+  }
+
+  const campanha = campanhaDaOnda(onda);
+
+  const { data: apagados, error: erroDelete } = await supabase
+    .from(DISPAROS_TABLE)
+    .delete()
+    .eq("campanha", campanha)
+    .eq("email_status", "canceled")
+    .select("id");
+
+  if (erroDelete) throw new Error(`Falha ao limpar os cancelados: ${erroDelete.message}`);
+
+  // Quem sobrou agendado pode estar no horário antigo.
+  const { reagendados, falhas } = await reagendarOnda(onda, quando);
+
+  // E quem ficou sem linha entra de novo, agora no horário certo.
+  const disparo = await dispararOnda({ onda, filtro: "todos", quando });
+
+  return {
+    limpos: apagados?.length ?? 0,
+    reagendados,
+    novos: disparo.enviados,
+    falhas: falhas + disparo.falhas,
+  };
+}
+
+/**
  * Manda uma onda para um endereço só, sem tocar na base nem no histórico.
  * É o ensaio antes do disparo: serve para ver na caixa de entrada como o
  * e-mail chega de verdade, com assunto, imagens e link de saída.
