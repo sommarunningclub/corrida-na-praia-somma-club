@@ -252,6 +252,134 @@ export async function enviarAmostra({
   return { id: data?.id ?? null };
 }
 
+/**
+ * Atualiza no banco o último evento de cada disparo de uma campanha.
+ *
+ * O Resend aceita 2 requisições por segundo, então isto anda em duplas com
+ * respiro: uma onda de 500 leva uns quatro minutos. Rode antes da poda, senão
+ * ela decide com dados velhos.
+ */
+export async function sincronizarDisparos(campanha: string): Promise<{
+  consultados: number;
+  atualizados: number;
+  falhas: number;
+}> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Supabase indisponível.");
+
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) throw new Error("RESEND_API_KEY não configurada.");
+
+  const { data, error } = await supabase
+    .from(DISPAROS_TABLE)
+    .select("id, resend_email_id, email_status")
+    .eq("campanha", campanha)
+    .not("resend_email_id", "is", null);
+
+  if (error) throw new Error(`Falha ao ler a campanha: ${error.message}`);
+
+  const linhas = data ?? [];
+  const resend = new Resend(apiKey);
+  const r = { consultados: linhas.length, atualizados: 0, falhas: 0 };
+
+  for (let i = 0; i < linhas.length; i += 2) {
+    await Promise.all(
+      linhas.slice(i, i + 2).map(async (linha) => {
+        try {
+          const { data: email, error: erro } = await resend.emails.get(
+            linha.resend_email_id as string
+          );
+          if (erro || !email) {
+            r.falhas += 1;
+            return;
+          }
+          const evento = (email as { last_event?: string }).last_event ?? "sent";
+          if (evento === linha.email_status) return;
+
+          const { error: erroUpdate } = await supabase
+            .from(DISPAROS_TABLE)
+            .update({ email_status: evento })
+            .eq("id", linha.id);
+
+          if (erroUpdate) r.falhas += 1;
+          else r.atualizados += 1;
+        } catch {
+          r.falhas += 1;
+        }
+      })
+    );
+    if (i + 2 < linhas.length) await new Promise((s) => setTimeout(s, 550));
+  }
+
+  return r;
+}
+
+/**
+ * Tira da onda agendada quem já clicou em uma onda anterior.
+ *
+ * O filtro `nao-clicou` do agendamento só enxerga o que aconteceu até o
+ * momento em que a onda foi agendada. Como as três saem no mesmo dia, a
+ * segmentação real acontece aqui: pouco antes do horário, cancela no Resend
+ * o e-mail de quem já confirmou presença. Quem clicou não é lembrado de novo.
+ */
+export async function podarOnda(onda: Onda): Promise<{
+  clicaram: number;
+  cancelados: number;
+  falhas: number;
+}> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Supabase indisponível.");
+
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) throw new Error("RESEND_API_KEY não configurada.");
+
+  const campanha = campanhaDaOnda(onda);
+
+  const { data: cliques, error: erroCliques } = await supabase
+    .from(DISPAROS_TABLE)
+    .select("lead_id")
+    .like("campanha", "corre-01-08-%")
+    .neq("campanha", campanha)
+    .eq("email_status", "clicked");
+
+  if (erroCliques) throw new Error(`Falha ao ler os cliques: ${erroCliques.message}`);
+
+  const clicaram = new Set((cliques ?? []).map((c) => c.lead_id as string));
+  if (clicaram.size === 0) return { clicaram: 0, cancelados: 0, falhas: 0 };
+
+  const { data: agendados, error: erroAgendados } = await supabase
+    .from(DISPAROS_TABLE)
+    .select("id, lead_id, resend_email_id")
+    .eq("campanha", campanha)
+    .eq("email_status", "scheduled");
+
+  if (erroAgendados) throw new Error(`Falha ao ler a onda: ${erroAgendados.message}`);
+
+  const resend = new Resend(apiKey);
+  let cancelados = 0;
+  let falhas = 0;
+
+  for (const linha of agendados ?? []) {
+    if (!clicaram.has(linha.lead_id as string) || !linha.resend_email_id) continue;
+    try {
+      const { error: erro } = await resend.emails.cancel(linha.resend_email_id as string);
+      if (erro) {
+        falhas += 1;
+        continue;
+      }
+      await supabase
+        .from(DISPAROS_TABLE)
+        .update({ email_status: "canceled" })
+        .eq("id", linha.id);
+      cancelados += 1;
+    } catch {
+      falhas += 1;
+    }
+  }
+
+  return { clicaram: clicaram.size, cancelados, falhas };
+}
+
 /** Cancela os e-mails agendados de uma onda que ainda não saíram. */
 export async function cancelarOnda(onda: Onda): Promise<{ cancelados: number; falhas: number }> {
   const supabase = getServiceSupabase();

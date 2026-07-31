@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
 import type { Onda } from "@/lib/emails/corre-email";
 import {
+  campanhaDaOnda,
   cancelarOnda,
   dispararOnda,
   enviarAmostra,
+  podarOnda,
+  sincronizarDisparos,
   type FiltroDisparo,
 } from "@/lib/emails/disparo-store";
 
@@ -70,6 +73,22 @@ export async function POST(request: Request) {
         nome: String(corpo.nome ?? "Alex").trim() || "Alex",
       });
       return NextResponse.json({ ok: true, ...r });
+    } catch (err) {
+      return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    }
+  }
+
+  if (corpo.acao === "sincronizar") {
+    try {
+      return NextResponse.json(await sincronizarDisparos(campanhaDaOnda(onda as Onda)));
+    } catch (err) {
+      return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    }
+  }
+
+  if (corpo.acao === "podar") {
+    try {
+      return NextResponse.json(await podarOnda(onda as Onda));
     } catch (err) {
       return NextResponse.json({ error: (err as Error).message }, { status: 500 });
     }
