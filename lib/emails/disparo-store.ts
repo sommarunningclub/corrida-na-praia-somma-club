@@ -31,6 +31,28 @@ export function campanhaDaOnda(onda: Onda): string {
   return `corre-01-08-onda-${onda}`;
 }
 
+/**
+ * O Supabase corta a resposta em mil linhas e não avisa. Em disparo isso é
+ * grave: a base cresce e um dia metade dela simplesmente deixaria de receber,
+ * sem erro nenhum aparecendo. Toda leitura de lista aqui passa por esta
+ * paginação.
+ */
+const PAGINA = 1000;
+
+async function lerTudo<T>(
+  consulta: (de: number, ate: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>,
+  oQue: string
+): Promise<T[]> {
+  const tudo: T[] = [];
+  for (let de = 0; ; de += PAGINA) {
+    const { data, error } = await consulta(de, de + PAGINA - 1);
+    if (error) throw new Error(`Falha ao ler ${oQue}: ${error.message}`);
+    const lote = data ?? [];
+    tudo.push(...lote);
+    if (lote.length < PAGINA) return tudo;
+  }
+}
+
 export type AlvoDisparo = {
   id: string;
   nome: string;
@@ -66,14 +88,15 @@ export async function alvosDaOnda(filtro: FiltroDisparo): Promise<{
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Supabase indisponível.");
 
-  const { data, error } = await supabase
-    .from(LISTA_VIP_TABLE)
-    .select("id, nome, email, descadastrado_em")
-    .order("created_at", { ascending: true });
-
-  if (error) throw new Error(`Falha ao ler a base: ${error.message}`);
-
-  const linhas = (data ?? []) as Array<AlvoDisparo & { descadastrado_em: string | null }>;
+  const linhas = await lerTudo<AlvoDisparo & { descadastrado_em: string | null }>(
+    (de, ate) =>
+      supabase
+        .from(LISTA_VIP_TABLE)
+        .select("id, nome, email, descadastrado_em")
+        .order("created_at", { ascending: true })
+        .range(de, ate),
+    "a base"
+  );
   const ativos = linhas.filter((l) => !l.descadastrado_em);
   const descadastrados = linhas.length - ativos.length;
 
@@ -81,15 +104,18 @@ export async function alvosDaOnda(filtro: FiltroDisparo): Promise<{
     return { alvos: ativos.map(({ id, nome, email }) => ({ id, nome, email })), descadastrados };
   }
 
-  const { data: cliques, error: erroCliques } = await supabase
-    .from(DISPAROS_TABLE)
-    .select("lead_id, email_status")
-    .like("campanha", "corre-01-08-%")
-    .eq("email_status", "clicked");
+  const cliques = await lerTudo<{ lead_id: string }>(
+    (de, ate) =>
+      supabase
+        .from(DISPAROS_TABLE)
+        .select("lead_id")
+        .like("campanha", "corre-01-08-%")
+        .eq("email_status", "clicked")
+        .range(de, ate),
+    "os cliques"
+  );
 
-  if (erroCliques) throw new Error(`Falha ao ler os disparos: ${erroCliques.message}`);
-
-  const clicaram = new Set((cliques ?? []).map((c) => c.lead_id as string));
+  const clicaram = new Set(cliques.map((c) => c.lead_id));
 
   return {
     alvos: ativos
@@ -130,14 +156,13 @@ export async function dispararOnda({
 
   // Quem já tem linha nesta campanha fica de fora: é a trava contra o disparo
   // repetido, conferida antes de gastar chamada de API.
-  const { data: jaFeitos, error: erroJa } = await supabase
-    .from(DISPAROS_TABLE)
-    .select("lead_id")
-    .eq("campanha", campanha);
+  const jaFeitos = await lerTudo<{ lead_id: string }>(
+    (de, ate) =>
+      supabase.from(DISPAROS_TABLE).select("lead_id").eq("campanha", campanha).range(de, ate),
+    "a campanha"
+  );
 
-  if (erroJa) throw new Error(`Falha ao conferir a campanha: ${erroJa.message}`);
-
-  const feitos = new Set((jaFeitos ?? []).map((d) => d.lead_id as string));
+  const feitos = new Set(jaFeitos.map((d) => d.lead_id));
   const pendentes = alvos.filter((a) => !feitos.has(a.id));
 
   const resultado: ResultadoDisparo = {
@@ -274,44 +299,68 @@ const PAPEL_DA_ONDA: Record<Onda, string> = {
   3: "Última chamada",
 };
 
-/** Uma linha por onda para o painel: quanto foi, quanto chegou, quanto voltou. */
+/**
+ * Uma linha por onda para o painel: quanto foi, quanto chegou, quanto voltou.
+ *
+ * Conta no servidor, com `head: true`, em vez de trazer as linhas e somar
+ * aqui. Não é otimização: o Supabase devolve no máximo mil linhas por
+ * consulta e a campanha inteira passa disso, então somar no cliente daria
+ * número errado justo na última onda.
+ */
 export async function resumoCampanha(): Promise<ResumoOnda[]> {
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Supabase indisponível.");
 
-  const { data, error } = await supabase
-    .from(DISPAROS_TABLE)
-    .select("campanha, email_status, agendado_para");
+  const contar = async (campanha: string, status?: string[]): Promise<number> => {
+    let q = supabase
+      .from(DISPAROS_TABLE)
+      .select("id", { count: "exact", head: true })
+      .eq("campanha", campanha);
+    if (status) q = q.in("email_status", status);
 
-  if (error) throw new Error(`Falha ao ler os disparos: ${error.message}`);
+    const { count, error } = await q;
+    if (error) throw new Error(`Falha ao contar os disparos: ${error.message}`);
+    return count ?? 0;
+  };
 
-  const linhas = (data ?? []) as Array<{
-    campanha: string;
-    email_status: string | null;
-    agendado_para: string | null;
-  }>;
+  return Promise.all(
+    ([1, 2, 3] as Onda[]).map(async (onda) => {
+      const campanha = campanhaDaOnda(onda);
 
-  return ([1, 2, 3] as Onda[]).map((onda) => {
-    const campanha = campanhaDaOnda(onda);
-    const minhas = linhas.filter((l) => l.campanha === campanha);
-    const conta = (status: string[]) =>
-      minhas.filter((l) => status.includes(l.email_status ?? "")).length;
+      const [total, agendados, entregues, abertos, cliques, cancelados, problemas] =
+        await Promise.all([
+          contar(campanha),
+          contar(campanha, ["scheduled"]),
+          // Abertura e clique implicam entrega; contam nos dois lugares.
+          contar(campanha, ["delivered", "opened", "clicked"]),
+          contar(campanha, ["opened", "clicked"]),
+          contar(campanha, ["clicked"]),
+          contar(campanha, ["canceled"]),
+          contar(campanha, ["bounced", "complained", "suppressed", "failed"]),
+        ]);
 
-    return {
-      onda,
-      campanha,
-      papel: PAPEL_DA_ONDA[onda],
-      total: minhas.length,
-      agendados: conta(["scheduled"]),
-      // Abertura e clique implicam entrega; contam nos dois lugares.
-      entregues: conta(["delivered", "opened", "clicked"]),
-      abertos: conta(["opened", "clicked"]),
-      cliques: conta(["clicked"]),
-      cancelados: conta(["canceled"]),
-      problemas: conta(["bounced", "complained", "suppressed", "failed"]),
-      agendadoPara: minhas.find((l) => l.agendado_para)?.agendado_para ?? null,
-    };
-  });
+      const { data: quando } = await supabase
+        .from(DISPAROS_TABLE)
+        .select("agendado_para")
+        .eq("campanha", campanha)
+        .not("agendado_para", "is", null)
+        .limit(1);
+
+      return {
+        onda,
+        campanha,
+        papel: PAPEL_DA_ONDA[onda],
+        total,
+        agendados,
+        entregues,
+        abertos,
+        cliques,
+        cancelados,
+        problemas,
+        agendadoPara: quando?.[0]?.agendado_para ?? null,
+      };
+    })
+  );
 }
 
 /**
@@ -332,15 +381,21 @@ export async function sincronizarDisparos(campanha: string): Promise<{
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) throw new Error("RESEND_API_KEY não configurada.");
 
-  const { data, error } = await supabase
-    .from(DISPAROS_TABLE)
-    .select("id, resend_email_id, email_status")
-    .eq("campanha", campanha)
-    .not("resend_email_id", "is", null);
+  const linhas = await lerTudo<{
+    id: string;
+    resend_email_id: string;
+    email_status: string | null;
+  }>(
+    (de, ate) =>
+      supabase
+        .from(DISPAROS_TABLE)
+        .select("id, resend_email_id, email_status")
+        .eq("campanha", campanha)
+        .not("resend_email_id", "is", null)
+        .range(de, ate),
+    "a campanha"
+  );
 
-  if (error) throw new Error(`Falha ao ler a campanha: ${error.message}`);
-
-  const linhas = data ?? [];
   const resend = new Resend(apiKey);
   const r = { consultados: linhas.length, atualizados: 0, falhas: 0 };
 
