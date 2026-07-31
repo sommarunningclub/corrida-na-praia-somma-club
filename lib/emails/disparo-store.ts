@@ -25,6 +25,23 @@ import {
 
 export const DISPAROS_TABLE = "napraia_disparos";
 
+/**
+ * Horário combinado de cada onda, em Brasília.
+ *
+ * É a fonte única: o agendamento em massa e a entrada automática de quem se
+ * cadastra durante o dia leem daqui. Mudou o horário de uma onda? Mude aqui e
+ * reagende com `reagendarOnda`, senão o banco e o Resend discordam.
+ */
+export const AGENDA_ONDAS: Record<Onda, string> = {
+  1: "2026-07-31T14:15:00-03:00",
+  2: "2026-07-31T17:30:00-03:00",
+  3: "2026-07-31T22:00:00-03:00",
+};
+
+/** Margem para não agendar em cima da hora: o Resend recusa horário passado
+ *  e o relógio do servidor pode estar alguns segundos à frente. */
+const MARGEM_MS = 2 * 60 * 1000;
+
 /** Nome da onda no banco. Muda a cada campanha; as três de hoje seguem este
  *  padrão para o painel conseguir agrupar. */
 export function campanhaDaOnda(onda: Onda): string {
@@ -237,6 +254,144 @@ export async function dispararOnda({
   }
 
   return resultado;
+}
+
+/**
+ * Coloca quem acabou de se cadastrar nas ondas que ainda não saíram.
+ *
+ * Chamada no fluxo de cadastro, não por cron: quem entra na lista às 16h
+ * pega a onda das 17h30 e a das 22h; quem entra às 20h pega só a das 22h;
+ * quem entra depois da última não recebe nada, e está certo assim.
+ *
+ * Nunca derruba o cadastro: falhar aqui significa não receber uma campanha,
+ * o que é bem menos grave do que perder o lead.
+ */
+export async function agendarOndasFuturas(lead: AlvoDisparo): Promise<Onda[]> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.VIP_EMAIL_FROM;
+  const supabase = getServiceSupabase();
+  if (!apiKey || !from || !supabase) return [];
+
+  const agora = Date.now();
+  const futuras = ([1, 2, 3] as Onda[]).filter(
+    (o) => new Date(AGENDA_ONDAS[o]).getTime() > agora + MARGEM_MS
+  );
+  if (futuras.length === 0) return [];
+
+  const resend = new Resend(apiKey);
+  const base = baseUrl();
+  const token = tokenDescadastro(lead.id);
+  const saida = urlDescadastro(base, lead.id);
+  const umClique = `${base}/api/descadastro?t=${encodeURIComponent(token)}`;
+  const entraram: Onda[] = [];
+
+  for (const onda of futuras) {
+    try {
+      const { data, error } = await resend.emails.send({
+        from,
+        to: lead.email,
+        subject: assuntoCorreEmail(lead.nome, onda),
+        html: renderCorreEmail({ nome: lead.nome, onda, descadastroUrl: saida }),
+        text: renderCorreEmailText({ nome: lead.nome, onda, descadastroUrl: saida }),
+        scheduledAt: AGENDA_ONDAS[onda],
+        headers: {
+          "List-Unsubscribe": `<${umClique}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+      });
+
+      if (error || !data) {
+        console.error(`[disparo] Onda ${onda} recusada para ${lead.email}:`, error);
+        continue;
+      }
+
+      // O índice único (lead_id, campanha) protege contra a linha dupla se
+      // esta função rodar duas vezes para o mesmo cadastro.
+      const { error: erroInsert } = await supabase.from(DISPAROS_TABLE).insert({
+        lead_id: lead.id,
+        campanha: campanhaDaOnda(onda),
+        resend_email_id: data.id,
+        email_status: "scheduled",
+        agendado_para: AGENDA_ONDAS[onda],
+      });
+
+      if (erroInsert) {
+        console.error(`[disparo] Onda ${onda} enviada sem registro:`, erroInsert.message);
+      }
+      entraram.push(onda);
+    } catch (err) {
+      console.error(`[disparo] Falha inesperada na onda ${onda}:`, err);
+    }
+  }
+
+  return entraram;
+}
+
+/**
+ * Muda o horário de uma onda que ainda não saiu, no Resend e no banco.
+ *
+ * Reagendar e não cancelar/recriar: cancelamento no Resend não tem volta, e
+ * a trava de disparo duplicado impediria montar a onda de novo sem antes
+ * apagar o histórico.
+ */
+export async function reagendarOnda(
+  onda: Onda,
+  quando: string
+): Promise<{ reagendados: number; falhas: number }> {
+  const supabase = getServiceSupabase();
+  if (!supabase) throw new Error("Supabase indisponível.");
+
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) throw new Error("RESEND_API_KEY não configurada.");
+
+  if (new Date(quando).getTime() < Date.now() + MARGEM_MS) {
+    throw new Error("Esse horário já passou ou está muito próximo.");
+  }
+
+  const campanha = campanhaDaOnda(onda);
+  const linhas = await lerTudo<{ id: string; resend_email_id: string }>(
+    (de, ate) =>
+      supabase
+        .from(DISPAROS_TABLE)
+        .select("id, resend_email_id")
+        .eq("campanha", campanha)
+        .eq("email_status", "scheduled")
+        .not("resend_email_id", "is", null)
+        .range(de, ate),
+    "a onda"
+  );
+
+  const resend = new Resend(apiKey);
+  let reagendados = 0;
+  let falhas = 0;
+
+  // Duas por vez, com respiro: o Resend aceita 2 requisições por segundo.
+  for (let i = 0; i < linhas.length; i += 2) {
+    await Promise.all(
+      linhas.slice(i, i + 2).map(async (linha) => {
+        try {
+          const { error } = await resend.emails.update({
+            id: linha.resend_email_id,
+            scheduledAt: quando,
+          });
+          if (error) {
+            falhas += 1;
+            return;
+          }
+          await supabase
+            .from(DISPAROS_TABLE)
+            .update({ agendado_para: quando })
+            .eq("id", linha.id);
+          reagendados += 1;
+        } catch {
+          falhas += 1;
+        }
+      })
+    );
+    if (i + 2 < linhas.length) await new Promise((s) => setTimeout(s, 550));
+  }
+
+  return { reagendados, falhas };
 }
 
 /**

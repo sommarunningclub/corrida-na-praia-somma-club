@@ -2,6 +2,7 @@ import "server-only";
 import { Resend } from "resend";
 import { getServiceSupabase, LISTA_VIP_TABLE } from "@/lib/supabase";
 import { ORIGEM_PAINEL, type LeadAdmin } from "@/lib/admin-tipos";
+import { agendarOndasFuturas } from "@/lib/emails/disparo-store";
 
 const CAMPOS =
   "id, nome, email, telefone, cpf, origem, grupo_whatsapp, utm_source, utm_medium, utm_campaign, resend_email_id, email_status, email_sent_at, created_at";
@@ -61,19 +62,33 @@ export async function criarLead(campos: CamposEditaveis): Promise<void> {
   const supabase = getServiceSupabase();
   if (!supabase) throw new Error("Supabase indisponível.");
 
-  const { error } = await supabase.from(LISTA_VIP_TABLE).insert({
-    nome: campos.nome.trim(),
-    email: campos.email.trim().toLowerCase(),
-    telefone: campos.telefone.trim(),
-    cpf: campos.cpf.trim(),
-    origem: ORIGEM_PAINEL,
-  });
+  const nome = campos.nome.trim();
+  const email = campos.email.trim().toLowerCase();
 
-  if (error) {
-    if (error.code === "23505") {
+  const { data, error } = await supabase
+    .from(LISTA_VIP_TABLE)
+    .insert({
+      nome,
+      email,
+      telefone: campos.telefone.trim(),
+      cpf: campos.cpf.trim(),
+      origem: ORIGEM_PAINEL,
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    if (error?.code === "23505") {
       throw new Error("Esse e-mail ou CPF já está na lista VIP.");
     }
-    throw new Error(`Não foi possível cadastrar: ${error.message}`);
+    throw new Error(`Não foi possível cadastrar: ${error?.message}`);
+  }
+
+  // Cadastro manual entra nas ondas em aberto igual a quem veio pelo site.
+  try {
+    await agendarOndasFuturas({ id: data.id as string, nome, email });
+  } catch (err) {
+    console.error("[admin] Não foi possível colocar o cadastro nas ondas:", err);
   }
 }
 

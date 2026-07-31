@@ -7,6 +7,7 @@ import {
   dispararOnda,
   enviarAmostra,
   podarOnda,
+  reagendarOnda,
   sincronizarDisparos,
   type FiltroDisparo,
 } from "@/lib/emails/disparo-store";
@@ -73,6 +74,18 @@ export async function POST(request: Request) {
         nome: String(corpo.nome ?? "Alex").trim() || "Alex",
       });
       return NextResponse.json({ ok: true, ...r });
+    } catch (err) {
+      return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    }
+  }
+
+  if (corpo.acao === "reagendar") {
+    try {
+      const quando = String(corpo.quando ?? "");
+      if (!quando || Number.isNaN(new Date(quando).getTime())) {
+        return NextResponse.json({ error: "Informe 'quando' em ISO 8601." }, { status: 400 });
+      }
+      return NextResponse.json(await reagendarOnda(onda as Onda, quando));
     } catch (err) {
       return NextResponse.json({ error: (err as Error).message }, { status: 500 });
     }

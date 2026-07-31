@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { LISTA_VIP_TABLE } from "@/lib/supabase";
 import { sendVipEmail } from "@/lib/emails/vip-email";
+import { agendarOndasFuturas } from "@/lib/emails/disparo-store";
 import { formatarCpf } from "@/lib/membro";
 import { urlDoGrupo } from "@/lib/napraia-data";
 
@@ -98,6 +99,19 @@ export async function gravarLead(
         email_sent_at: new Date().toISOString(),
       })
       .eq("id", data.id);
+  }
+
+  // Quem entra na lista durante a campanha entra também nas ondas que ainda
+  // não saíram. Fica depois do e-mail de confirmação e fora do caminho de
+  // erro: campanha é acessório, o cadastro é o que não pode falhar.
+  try {
+    await agendarOndasFuturas({
+      id: data.id as string,
+      nome: lead.nome,
+      email: lead.email,
+    });
+  } catch (err) {
+    console.error("[lista-vip] Não foi possível colocar o lead nas ondas:", err);
   }
 
   return { ok: true, codigo: codigoDoTicket(data.id) };
