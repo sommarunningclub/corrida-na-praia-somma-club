@@ -14,6 +14,21 @@ import {
   SORTEIO,
 } from "@/lib/napraia-data";
 import { firstName } from "@/lib/validation";
+import {
+  AMARELO,
+  baseUrl,
+  botao,
+  CINZA,
+  CINZA_CLARO,
+  CREME,
+  escapeHtml,
+  itemLista,
+  LARANJA,
+  NAVY,
+  NAVY_CLARO,
+  secao,
+  TINTA,
+} from "@/lib/emails/base";
 
 interface SendVipArgs {
   nome: string;
@@ -63,69 +78,6 @@ export async function sendVipEmail({
     console.error("[vip-email] Erro inesperado:", err);
     return null;
   }
-}
-
-/* ─── Paleta e helpers ─────────────────────────────────────────────────────
- * O template é montado em tabelas com estilo inline: é o que Gmail, Outlook
- * e Apple Mail entendem igual. Nada de flex, grid, SVG ou <style> externo.
- */
-
-const LARANJA = "#FF2C03";
-const NAVY = "#01053F";
-const NAVY_CLARO = "#010775";
-const AMARELO = "#FCAD00";
-const CREME = "#FEF5E6";
-const TINTA = "#0A0A0A";
-const CINZA = "#5A5A5A";
-const CINZA_CLARO = "#8A8A8A";
-
-/** Base pública das imagens. O e-mail vive fora do site, então precisa de URL
- *  absoluta: caminho relativo não resolve na caixa de entrada. */
-function baseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://corrida-na-praia-somma-club.vercel.app"
-  );
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
-
-/** Bloco de seção com título colorido, para o corpo claro do e-mail. */
-function secao(rotulo: string, titulo: string, conteudo: string): string {
-  return `
-  <tr><td style="padding:34px 28px 0;">
-    <p style="margin:0 0 6px;color:${LARANJA};font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;">${rotulo}</p>
-    <h2 style="margin:0 0 16px;color:${TINTA};font-size:22px;line-height:1.25;font-weight:700;letter-spacing:-.4px;">${titulo}</h2>
-    ${conteudo}
-  </td></tr>`;
-}
-
-/** Item de lista com bolinha laranja, em tabela para o Outlook não quebrar. */
-function itemLista(texto: string, cor = LARANJA): string {
-  return `
-  <tr>
-    <td width="22" valign="top" style="padding:5px 0 0;">
-      <div style="width:7px;height:7px;border-radius:7px;background:${cor};"></div>
-    </td>
-    <td valign="top" style="padding:0 0 10px;color:${CINZA};font-size:15px;line-height:23px;">${texto}</td>
-  </tr>`;
-}
-
-/** Botão pill. Usa tabela porque Outlook ignora padding em <a>. */
-function botao(href: string, texto: string, fundo = LARANJA, cor = "#ffffff"): string {
-  return `
-  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
-    <tr><td bgcolor="${fundo}" style="border-radius:9999px;">
-      <a href="${href}" style="display:inline-block;padding:15px 30px;color:${cor};text-decoration:none;font-size:15px;font-weight:700;">${texto}</a>
-    </td></tr>
-  </table>`;
 }
 
 /* ─── Template ─────────────────────────────────────────────────────────── */

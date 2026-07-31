@@ -164,7 +164,8 @@ export const SORTEIO = {
     {
       selo: "Sábado, 1º de agosto · a partir das 7h",
       titulo: "Entrega do ingresso no Corre do Somma Club",
-      descricao: "Retirada presencial no Estacionamento 10, com o ganhador em pessoa.",
+      descricao:
+        "Retirada presencial no Estacionamento 10 do Parque da Cidade, com o ganhador em pessoa.",
       destaque: true,
     },
     {
@@ -182,6 +183,41 @@ export const SORTEIO = {
   regra: "A participação está sujeita ao regulamento oficial da ação promocional.",
   poster: "/sorteio-nattan-matheus-kauan-bia.png",
   url: "https://r2.com.vc/produto/01-08-nattan-matheus-e-kauan-bia-frazzo/",
+} as const;
+
+/* ─── Corre do Somma Club ────────────────────────────────────────────────── */
+// O treino semanal da comunidade. Entra aqui porque virou o ponto de encontro
+// da ação promocional: é onde o ingresso do show é entregue em mãos.
+
+export const CORRE = {
+  nome: "Corre do Somma Club",
+  dia: "Sábado, 1º de agosto",
+  diaCurto: "Sábado, 1º/08",
+  hora: "7h",
+  local: "Estacionamento 10 do Parque da Cidade",
+  cidade: "Brasília",
+  checkin: "https://sommaclub.com.br/check-in",
+  maps: "https://www.google.com/maps/search/?api=1&query=Estacionamento+10+Parque+da+Cidade+Bras%C3%ADlia",
+
+  // Os pelotões são escolhidos no passo 2 do check-in. Os nomes aqui precisam
+  // bater com os da página: quem lê "Moderado" no e-mail procura "Moderado" lá.
+  pelotoes: [
+    {
+      nome: "Ritmo Iniciante",
+      descricao: "Alterna corrida e caminhada, 1' correndo e 2' caminhando",
+      cor: "#34C759",
+    },
+    {
+      nome: "Ritmo Moderado",
+      descricao: "Ritmo constante, pace aproximado de 6'30\"",
+      cor: "#FCAD00",
+    },
+    {
+      nome: "Ritmo Avançado",
+      descricao: "Para corredores experientes, pace aproximado de 5'30\"",
+      cor: "#FF2C03",
+    },
+  ],
 } as const;
 
 /* ─── Lista VIP ──────────────────────────────────────────────────────────── */
